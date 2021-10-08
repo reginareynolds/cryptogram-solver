@@ -1,0 +1,143 @@
+from tkinter import Tk, messagebox
+from tkinter import Button, Frame
+from tkinter.constants import S
+from tkinter.filedialog import askopenfilename
+import sys
+
+
+class Menu(Tk):
+    def __init__(self, title, buttons):
+        # Final variables
+        self.path = None
+        self.encrypted = None
+        self.decoded = None
+
+        # CREATE MENU ITEMS
+
+        # CONFIGURE MENU
+        Tk.__init__(self)
+        # Bind keys to functions
+        self.bind('<Return>', self.onclick)
+
+        # Set window title
+        self.title(title)
+        self.frame = Frame(self)
+
+        # Create buttons
+        self.buttons = buttons  # Button click history
+        self.rows = []  # Array to store button locations
+        index = 2
+        for button in self.buttons:
+            self.button = Button(
+                self, text=button[1], command=lambda response=button[0]: self.onclick(response))
+            self.button.grid(row=index, column=0, padx=50,
+                             pady=5, sticky="W E")
+            self.rows.append(self.button)
+            index = index + 1
+
+            # Disable buttons until file is selected
+            if index-3 == 0:
+                pass
+            else:
+                self.button['state'] = 'disabled'
+
+        # Return to menu or close program
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    # TODO: Reset button text and disable buttons if user closes out of file prompt.
+    # Enable submission on selection of file
+    def enable(self):
+        # File has been selected
+        if self.path != self.buttons[0][1]:
+            for button in self.rows:
+                button['state'] = 'normal'
+        else:  # File not selected yet
+            pass
+
+    def onclick(self, response):
+        # User selected button with mouse
+        if type(response) == int:
+            pass
+        # User selected button with keyboard
+        else:
+            index = 1
+            for location in self.rows:
+                if self.focus_get() == location:
+                    response = index
+                else:
+                    pass
+                index = index + 1
+
+        choice = 'func_' + str(response)
+        method = getattr(self, choice)
+        return method()
+
+    # Enable menu option opening and closing
+    @staticmethod
+    def hide(frame):
+        frame.withdraw()
+
+    @staticmethod
+    def show(frame):
+        frame.update()
+        frame.deiconify()
+
+    # File prompt
+    def func_1(self):
+        # Hide menu
+        self.hide(self)
+
+        # Create prompt for file
+        self.path = file_prompt()
+        self.rows[0].config(text=self.path)
+        self.enable()
+        self.show(self)
+
+    # Begin decryption
+    def func_2(self):
+        # Hide menu
+        self.hide(self)
+
+        self.encrypted = Cryptogram(self.path)
+
+    def on_closing(self):
+        ans = messagebox.askokcancel(
+            'Verify exit', "Do you really want to quit the program?")
+        if ans:
+            self.quit()
+            sys.exit(3)
+        else:
+            pass
+
+
+def file_prompt():
+    Tk().withdraw()
+    filename = askopenfilename()
+    return filename
+
+    # TODO: Make sure that the file is a text file, otherwise reject it
+
+
+def decrypt(file):
+    # Parse encrypted file
+    with open(file) as contents:
+        encrypted = contents.readlines()
+    
+    #TODO: Remove whitespaces, split into words
+    #TODO: Account for letter frequency
+
+    return encrypted
+
+
+class Cryptogram():
+    def __init__(self, file):
+        self.encrypted = None
+
+        self.encrypted = decrypt(file)
+
+
+if __name__ == '__main__':
+    encrypted = Menu(
+        "Crypto-Solver!", ((1, "Choose an encrypted file."), (2, "Decrypt cryptogram.")))
+    encrypted.mainloop()
+    encrypted.destroy()
