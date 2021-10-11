@@ -128,7 +128,7 @@ class Cryptogram():
     def __init__(self):
         self.file = None
         self.encrypted = None
-        self.words = []
+        self.words = []  # Access using [x][y], where x is the line number index and y is the word number index in that line
 
     def decrypt(self):
         # Parse encrypted file
@@ -137,7 +137,7 @@ class Cryptogram():
         # Strip whitespaces
         for line in range(0, len(self.encrypted)):
             self.encrypted[line] = self.encrypted[line].strip()
-        # TODO: Split into words
+            self.words.append(self.encrypted[line].split(' '))
         # TODO: Account for letter frequency
 
 
