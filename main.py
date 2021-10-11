@@ -121,11 +121,8 @@ class Menu(Tk):
 
 def file_prompt():
     Tk().withdraw()
-    filename = askopenfilename()
+    filename = askopenfilename(filetypes=[("Text files", "*.txt")])
     return filename
-
-    # TODO: Make sure that the file is a text file, otherwise reject it
-
 
 class Cryptogram():
     def __init__(self):
