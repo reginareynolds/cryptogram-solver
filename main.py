@@ -42,7 +42,7 @@ class Menu(Tk):
         # Return to menu or close program
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-    # TODO: Reset button text and disable buttons if user closes out of file prompt.
+    # TODO: Disable buttons if user closes out of file prompt.
     # Enable submission on selection of file
     def enable(self):
         # File has been selected
@@ -87,7 +87,14 @@ class Menu(Tk):
 
         # Create prompt for file
         self.path = file_prompt()
-        self.rows[0].config(text=self.path)
+
+        # Check if user closed out of file prompt
+        if self.path == '':
+            self.path = None  # Reset path
+            self.rows[0].config(text=self.buttons[0][1])  # Reset button text
+        else:
+            self.rows[0].config(text=self.path)  # Change button text to selected path
+
         self.enable()
         self.show(self)
 
