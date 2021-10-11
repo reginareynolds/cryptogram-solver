@@ -1,8 +1,6 @@
-from tkinter import Tk, messagebox
-from tkinter import Button, Frame
-from tkinter.constants import S
-from tkinter.filedialog import askopenfilename
 import sys
+from tkinter import Button, Frame, Tk, messagebox
+from tkinter.filedialog import askopenfilename
 
 
 class Menu(Tk):
@@ -120,7 +118,7 @@ def file_prompt():
     filename = askopenfilename()
     return filename
 
-    # TODO: Make sure that the file is a text file, otherwise reject it    
+    # TODO: Make sure that the file is a text file, otherwise reject it
 
 
 class Cryptogram():
@@ -132,8 +130,8 @@ class Cryptogram():
         # Parse encrypted file
         with open(self.file) as contents:
             self.encrypted = contents.readlines()
-        #TODO: Remove whitespaces, split into words
-        #TODO: Account for letter frequency
+        # TODO: Remove whitespaces, split into words
+        # TODO: Account for letter frequency
 
 
 if __name__ == '__main__':
