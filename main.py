@@ -1,8 +1,6 @@
-from tkinter import Tk, messagebox
-from tkinter import Button, Frame
-from tkinter.constants import S
-from tkinter.filedialog import askopenfilename
 import sys
+from tkinter import Button, Frame, Tk, messagebox
+from tkinter.filedialog import askopenfilename
 
 
 class Menu(Tk):
@@ -44,15 +42,14 @@ class Menu(Tk):
         # Return to menu or close program
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-    # TODO: Reset button text and disable buttons if user closes out of file prompt.
     # Enable submission on selection of file
     def enable(self):
         # File has been selected
-        if self.path != self.buttons[0][1]:
+        if self.path != None:
             for button in self.rows:
                 button['state'] = 'normal'
         else:  # File not selected yet
-            pass
+            self.button['state'] = 'disabled'
 
     def onclick(self, response):
         # User selected button with mouse
@@ -89,7 +86,14 @@ class Menu(Tk):
 
         # Create prompt for file
         self.path = file_prompt()
-        self.rows[0].config(text=self.path)
+
+        # Check if user closed out of file prompt
+        if self.path == '':
+            self.path = None  # Reset path
+            self.rows[0].config(text=self.buttons[0][1])  # Reset button text
+        else:
+            self.rows[0].config(text=self.path)  # Change button text to selected path
+
         self.enable()
         self.show(self)
 
@@ -117,23 +121,24 @@ class Menu(Tk):
 
 def file_prompt():
     Tk().withdraw()
-    filename = askopenfilename()
+    filename = askopenfilename(filetypes=[("Text files", "*.txt")])
     return filename
-
-    # TODO: Make sure that the file is a text file, otherwise reject it    
-
 
 class Cryptogram():
     def __init__(self):
-        self.encrypted = None
         self.file = None
+        self.encrypted = None
+        self.words = []  # Access using [x][y], where x is the line number index and y is the word number index in that line
 
     def decrypt(self):
         # Parse encrypted file
         with open(self.file) as contents:
             self.encrypted = contents.readlines()
-        #TODO: Remove whitespaces, split into words
-        #TODO: Account for letter frequency
+        # Strip whitespaces
+        for line in range(0, len(self.encrypted)):
+            self.encrypted[line] = self.encrypted[line].strip()
+            self.words.append(self.encrypted[line].split(' '))
+        # TODO: Account for letter frequency
 
 
 if __name__ == '__main__':
