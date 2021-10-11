@@ -126,14 +126,18 @@ def file_prompt():
 
 class Cryptogram():
     def __init__(self):
-        self.encrypted = None
         self.file = None
+        self.encrypted = None
+        self.words = []
 
     def decrypt(self):
         # Parse encrypted file
         with open(self.file) as contents:
             self.encrypted = contents.readlines()
-        # TODO: Remove whitespaces, split into words
+        # Strip whitespaces
+        for line in range(0, len(self.encrypted)):
+            self.encrypted[line] = self.encrypted[line].strip()
+        # TODO: Split into words
         # TODO: Account for letter frequency
 
 
