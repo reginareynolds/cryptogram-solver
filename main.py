@@ -9,7 +9,7 @@ class Menu(Tk):
     def __init__(self, title, buttons):
         # Final variables
         self.path = None
-        self.encrypted = None
+        self.encoded = Cryptogram()
         self.decoded = None
 
         # CREATE MENU ITEMS
@@ -98,7 +98,12 @@ class Menu(Tk):
         # Hide menu
         self.hide(self)
 
-        self.encrypted = Cryptogram(self.path)
+        # Set path to cryptogram file and open
+        self.encoded.file = self.path
+        self.encoded.decrypt()
+        self.enable()
+        self.show(self)
+        # TODO: Show decrypted text in new window
 
     def on_closing(self):
         ans = messagebox.askokcancel(
@@ -115,25 +120,20 @@ def file_prompt():
     filename = askopenfilename()
     return filename
 
-    # TODO: Make sure that the file is a text file, otherwise reject it
-
-
-def decrypt(file):
-    # Parse encrypted file
-    with open(file) as contents:
-        encrypted = contents.readlines()
-    
-    #TODO: Remove whitespaces, split into words
-    #TODO: Account for letter frequency
-
-    return encrypted
+    # TODO: Make sure that the file is a text file, otherwise reject it    
 
 
 class Cryptogram():
-    def __init__(self, file):
+    def __init__(self):
         self.encrypted = None
+        self.file = None
 
-        self.encrypted = decrypt(file)
+    def decrypt(self):
+        # Parse encrypted file
+        with open(self.file) as contents:
+            self.encrypted = contents.readlines()
+        #TODO: Remove whitespaces, split into words
+        #TODO: Account for letter frequency
 
 
 if __name__ == '__main__':
