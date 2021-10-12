@@ -1,4 +1,5 @@
 import sys
+import collections
 from tkinter import Button, Frame, Tk, messagebox
 from tkinter.filedialog import askopenfilename
 
@@ -108,6 +109,7 @@ class Menu(Tk):
         self.enable()
         self.show(self)
         # TODO: Show decrypted text in new window
+        # TODO: Only run decryption once to prevent additional parsing unless file path changes
 
     def on_closing(self):
         ans = messagebox.askokcancel(
@@ -124,20 +126,30 @@ def file_prompt():
     filename = askopenfilename(filetypes=[("Text files", "*.txt")])
     return filename
 
+
 class Cryptogram():
     def __init__(self):
         self.file = None
         self.encrypted = None
         self.words = []  # Access using [x][y], where x is the line number index and y is the word number index in that line
+        self.letter_count = collections.Counter()  # Running count of letter appearances in encrypted text
+        self.letters = Alphabet()
 
     def decrypt(self):
         # Parse encrypted file
         with open(self.file) as contents:
             self.encrypted = contents.readlines()
-        # Strip whitespaces
+
+        # Strip whitespaces and standardize letters to same case
         for line in range(0, len(self.encrypted)):
-            self.encrypted[line] = self.encrypted[line].strip()
+            self.encrypted[line] = self.encrypted[line].strip().upper()
             self.words.append(self.encrypted[line].split(' '))
+            self.count(self.encrypted[line])
+
+    # Update letter count for file
+    def count(self, word):
+        self.letter_count.update(word)
+
         # TODO: Account for letter frequency
 
 
