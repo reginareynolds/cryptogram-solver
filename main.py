@@ -234,7 +234,20 @@ class Cryptogram():
         # Strip whitespaces and standardize letters to same case
         for line in range(0, len(self.encrypted)):
             self.encrypted[line] = self.encrypted[line].strip().upper()
-            self.words.append(self.encrypted[line].split(' '))
+            
+            # Split into words
+            words = self.encrypted[line].split(' ')
+            
+            # Check words for alphabetic characters
+            alphabetic = ''
+            alphabetic_line = []
+            for word in words:
+                for letter in word:
+                    if letter.isalpha():
+                        alphabetic = ''.join((alphabetic, letter))
+                alphabetic_line.append(alphabetic)
+                alphabetic = ''
+            self.words.append(alphabetic_line)
             self.count(self.encrypted[line])
 
         # Count the total number of alphabetic characters
@@ -269,7 +282,7 @@ class Cryptogram():
 
 
 if __name__ == '__main__':
-    encrypted = Menu(
+    menu = Menu(
         "Crypto-Solver!", ((1, "Choose an encrypted file."), (2, "Decrypt cryptogram.")))
-    encrypted.mainloop()
-    encrypted.destroy()
+    menu.mainloop()
+    menu.destroy()
