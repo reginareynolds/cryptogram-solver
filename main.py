@@ -129,6 +129,22 @@ def file_prompt():
     return filename
 
 
+# Find common potential decryption values
+def common_keys(cypher_one, cypher_two):
+    common_cypher = Cypher()
+    for letter in cypher_one:
+        if cypher_one[letter] == []:  # First cypher is empty
+            for value in cypher_two[letter]:  # Copy over everything from second cypher
+                common_cypher.cypher[letter].append(value)
+        elif cypher_two[letter] == []:  # Second cypher is empty
+            for value in cypher_one[letter]:  # Copy over everything from first cypher
+                common_cypher.cypher[letter].append(value)
+        else:
+            for value in cypher_one[letter]:  # First cypher has a value
+                if value in cypher_two[letter]:  # Second cypher has the same value
+                    common_cypher.cypher[letter].append(value)
+    return common_cypher
+
 class Cypher():
     def __init__(self):
         self.cypher = {
@@ -168,34 +184,6 @@ class Cypher():
 
 class Alphabet():
     def __init__(self):
-        self.cypher = [
-            ["A", ""],
-            ["B", ""],
-            ["C", ""],
-            ["D", ""],
-            ["E", ""],
-            ["F", ""],
-            ["G", ""],
-            ["H", ""],
-            ["I", ""],
-            ["J", ""],
-            ["K", ""],
-            ["L", ""],
-            ["M", ""],
-            ["N", ""],
-            ["O", ""],
-            ["P", ""],
-            ["Q", ""],
-            ["R", ""],
-            ["S", ""],
-            ["T", ""],
-            ["U", ""],
-            ["V", ""],
-            ["W", ""],
-            ["X", ""],
-            ["Y", ""],
-            ["Z", ""]]
-
         # Statistical frequency of letters in the English language
         self.stat_frequency = [
             ["A", 0.084966],
@@ -262,6 +250,23 @@ class Cryptogram():
         self.words = []  # Access using [x][y], where x is the line number index and y is the word number index in that line
         self.letter_count = collections.Counter()  # Running count of letter appearances in encrypted text
         self.letters = Alphabet()
+        self.word_patterns = {}
+        self.cyphers = []
+        self.final_cypher = Cypher()
+
+    # Remove any correctly decrypted letters from potential decryptions of other encrypted letters
+    def simplify_decryption(self):
+        solved = []
+
+        for letter in self.final_cypher.cypher:
+            if len(self.final_cypher.cypher[letter]) == 1:  # Only one potential decryption for encrypted value, must be correct
+                solved.append(self.final_cypher.cypher[letter][0])
+        
+        for letter in self.final_cypher.cypher:
+            for value in solved:
+                if len(self.final_cypher.cypher[letter]) > 1:
+                    if value in self.final_cypher.cypher[letter]:  # Remove already decrypted values from potential decrypted values
+                        self.final_cypher.cypher[letter].remove(value)
 
     def decrypt(self):
         # Parse encrypted file
@@ -310,6 +315,24 @@ class Cryptogram():
                     self.word_patterns[pattern].append(word)  # Add encrypted English word to matching pattern key
                 else:
                     self.word_patterns[pattern] = [word]  # Create new pattern key and initialize value list with encrypted English word
+
+        # Compare word patterns in encrypted text to word patterns in English dictionary
+        for pattern in self.word_patterns:
+            # Map all potential decrypted values to corresponding encrypted values
+            for encrypted_match in self.word_patterns[pattern]:
+                cypher = Cypher()  # Create new cypher
+                for dictionary_match in dictionary_patterns[pattern]:
+                    for letter in range(0, len(pattern)):
+                        cypher.add_cypher_keys(encrypted_match[letter], dictionary_match[letter])
+                self.cyphers.append(cypher)
+
+        # Find common potential decrypted values in cyphers
+        self.final_cypher = common_keys(self.cyphers[0].cypher, self.cyphers[1].cypher)
+        for count in range(2, len(self.cyphers)):
+            self.final_cypher = common_keys(self.cyphers[count].cypher, self.final_cypher.cypher)
+
+        # Simplify common decrypted values
+        self.simplify_decryption()
 
     # Update letter count for file
     def count(self, word):
