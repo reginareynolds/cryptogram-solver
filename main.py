@@ -2,6 +2,8 @@ import sys
 import collections
 from tkinter import Button, Frame, Tk, messagebox
 from tkinter.filedialog import askopenfilename
+from patterns import get_word_pattern
+from word_patterns import dictionary_patterns
 
 
 class Menu(Tk):
@@ -251,13 +253,13 @@ class Cryptogram():
         # Determine word patterns for words in encrypted text
         for line in self.words:
             for word in line:
-                pattern = word_pattern(word)
+                pattern = get_word_pattern(word)
 
                 # Check for word pattern in pattern list
                 if pattern in self.word_patterns:
-                    self.word_patterns[pattern].append(word)  # Add English word to matching pattern key
+                    self.word_patterns[pattern].append(word)  # Add encrypted English word to matching pattern key
                 else:
-                    self.word_patterns[pattern] = [word]  # Create new pattern key and initialize value list with English word
+                    self.word_patterns[pattern] = [word]  # Create new pattern key and initialize value list with encrypted English word
 
     # Update letter count for file
     def count(self, word):

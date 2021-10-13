@@ -1,7 +1,7 @@
 import pprint
 
 # Identify word patterns
-def word_pattern(word):
+def get_word_pattern(word):
     next = 0
     letters = {}
     pattern = []
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     
     for word in words:
         # Determine pattern for each word in dictionary file
-        pattern = word_pattern(word)
+        pattern = get_word_pattern(word)
 
         # Check for word pattern in pattern list
         if pattern in dictionary_patterns:
@@ -34,5 +34,5 @@ if __name__ == '__main__':
 
     # Create file of all word patterns and corresponding words
     with open('cryptogram-solver/word_patterns.py', 'w') as file:
-        file.write('patterns = ')
+        file.write('dictionary_patterns = ')
         file.write(pprint.pformat(dictionary_patterns))
