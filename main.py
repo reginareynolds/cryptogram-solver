@@ -129,6 +129,43 @@ def file_prompt():
     return filename
 
 
+class Cypher():
+    def __init__(self):
+        self.cypher = {
+            "A": [],
+            "B": [],
+            "C": [],
+            "D": [],
+            "E": [],
+            "F": [],
+            "G": [],
+            "H": [],
+            "I": [],
+            "J": [],
+            "K": [],
+            "L": [],
+            "M": [],
+            "N": [],
+            "O": [],
+            "P": [],
+            "Q": [],
+            "R": [],
+            "S": [],
+            "T": [],
+            "U": [],
+            "V": [],
+            "W": [],
+            "X": [],
+            "Y": [],
+            "Z": []}
+
+    # Match possible decryption values to encrypted values
+    def add_cypher_keys(self, encrypted_value, decrypted_value):
+        # Make sure decrypted value is not already accounted for
+        if decrypted_value not in self.cypher[encrypted_value]:
+            self.cypher[encrypted_value].append(decrypted_value)
+
+
 class Alphabet():
     def __init__(self):
         self.cypher = [
