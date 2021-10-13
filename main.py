@@ -248,6 +248,17 @@ class Cryptogram():
                     if pair[0] == letter:
                         pair[1] = self.letter_count[letter]/total
 
+        # Determine word patterns for words in encrypted text
+        for line in self.words:
+            for word in line:
+                pattern = word_pattern(word)
+
+                # Check for word pattern in pattern list
+                if pattern in self.word_patterns:
+                    self.word_patterns[pattern].append(word)  # Add English word to matching pattern key
+                else:
+                    self.word_patterns[pattern] = [word]  # Create new pattern key and initialize value list with English word
+
     # Update letter count for file
     def count(self, word):
         self.letter_count.update(word)
