@@ -107,7 +107,7 @@ class Menu(Tk):
 
         # Set path to cryptogram file and open
         self.encoded.file = self.path
-        self.encoded.decrypt()
+        self.encoded.parse()
         self.enable()
         self.show(self)
         # TODO: Show decrypted text in new window
@@ -253,6 +253,7 @@ class Cryptogram():
         self.word_patterns = {}
         self.cyphers = []
         self.final_cypher = Cypher()
+        self.decrypted = None
 
     # Remove any correctly decrypted letters from potential decryptions of other encrypted letters
     def simplify_decryption(self):
@@ -270,6 +271,23 @@ class Cryptogram():
                         self.final_cypher.cypher[letter].remove(value)
 
     def decrypt(self):
+        solved = []
+        for letter in self.final_cypher.cypher:
+            if len(self.final_cypher.cypher[letter]) == 1:
+                solved.append([letter, self.final_cypher.cypher[letter][0]])
+        self.decrypted = ''
+
+        for line in range(0, len(self.encrypted)):
+            for letter in range(0, len(self.encrypted[line])):
+                flag = True
+                for value in solved:
+                    if self.encrypted[line][letter] == value[0]:
+                        self.decrypted = ''.join((self.decrypted,value[1]))
+                        flag = False
+                        break
+                if flag:
+                    self.decrypted = ''.join((self.decrypted, self.encrypted[line][letter]))
+    def parse(self):
         # Parse encrypted file
         with open(self.file) as contents:
             self.encrypted = contents.readlines()
@@ -334,6 +352,9 @@ class Cryptogram():
 
         # Simplify common decrypted values
         self.simplify_decryption()
+
+        # Decrypt as much of message as possible
+        self.decrypt()
 
     # Update letter count for file
     def count(self, word):
