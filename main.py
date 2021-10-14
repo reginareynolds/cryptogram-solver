@@ -265,6 +265,7 @@ class Cryptogram():
         for letter in self.final_cypher.cypher:
             for value in solved:
                 if len(self.final_cypher.cypher[letter]) > 1:
+                for value in solved:
                     if value in self.final_cypher.cypher[letter]:  # Remove already decrypted values from potential decrypted values
                         self.final_cypher.cypher[letter].remove(value)
 
