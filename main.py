@@ -369,6 +369,16 @@ class Cryptogram():
 
         # TODO: Account for letter frequency
 
+    # Identify potential key words and prefixes/suffixes
+    def find_key_words(self):
+        # Key three letter words: and, are, but, for, had, her, his, its, nor, she, the, was, yet
+        # Key two letter words: am, an, as, at, be, by, do, go, he, if, in, is, it, me, my, no, of, on, or, so, to, up, us, we
+        # Key one letter words: I, a
+        # Key prefixes: bi-, co-, de-, dis-, ex-, in-, mis-, non-, post-, pre-, pro-, re-, sub-, un-
+        # Key suffixes: -able, -acy, -al, -ate, -dom, -ed, -en, -er, -ful, -fy, -ing, -ion, -ish, -ist, -ive, -ize, -less, -ment, -ness, -or, -ship, -ty, -y
+        # Key double letters, in order of frequency in the English language: ll, ss, ee, oo, tt, ff, pp, rr  
+        pass
+
 
 if __name__ == '__main__':
     menu = Menu(
