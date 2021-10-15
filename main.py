@@ -264,11 +264,12 @@ class Cryptogram():
                 solved.append(self.final_cypher.cypher[letter][0])
         
         for letter in self.final_cypher.cypher:
-            for value in solved:
-                if len(self.final_cypher.cypher[letter]) > 1:
+            if len(self.final_cypher.cypher[letter]) > 1:
                 for value in solved:
                     if value in self.final_cypher.cypher[letter]:  # Remove already decrypted values from potential decrypted values
                         self.final_cypher.cypher[letter].remove(value)
+                        if len(self.final_cypher.cypher[letter]) == 1:  # If removing already decrypted values leaves only one potential decrypted value, call function again
+                            self.simplify_decryption()
 
     def decrypt(self):
         solved = []
@@ -287,6 +288,12 @@ class Cryptogram():
                         break
                 if flag:
                     self.decrypted = ''.join((self.decrypted, self.encrypted[line][letter]))
+
+        print("encrypted")
+        print(self.encrypted)
+        print("decrypted")
+        print(self.decrypted)
+
     def parse(self):
         # Parse encrypted file
         with open(self.file) as contents:
