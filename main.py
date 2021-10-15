@@ -2,6 +2,8 @@ import sys
 import collections
 from tkinter import Button, Frame, Tk, messagebox
 from tkinter.filedialog import askopenfilename
+from patterns import get_word_pattern
+from word_patterns import dictionary_patterns
 
 
 class Menu(Tk):
@@ -105,7 +107,7 @@ class Menu(Tk):
 
         # Set path to cryptogram file and open
         self.encoded.file = self.path
-        self.encoded.decrypt()
+        self.encoded.parse()
         self.enable()
         self.show(self)
         # TODO: Show decrypted text in new window
@@ -127,36 +129,61 @@ def file_prompt():
     return filename
 
 
+# Find common potential decryption values
+def common_keys(cypher_one, cypher_two):
+    common_cypher = Cypher()
+    for letter in cypher_one:
+        if cypher_one[letter] == []:  # First cypher is empty
+            for value in cypher_two[letter]:  # Copy over everything from second cypher
+                common_cypher.cypher[letter].append(value)
+        elif cypher_two[letter] == []:  # Second cypher is empty
+            for value in cypher_one[letter]:  # Copy over everything from first cypher
+                common_cypher.cypher[letter].append(value)
+        else:
+            for value in cypher_one[letter]:  # First cypher has a value
+                if value in cypher_two[letter]:  # Second cypher has the same value
+                    common_cypher.cypher[letter].append(value)
+    return common_cypher
+
+class Cypher():
+    def __init__(self):
+        self.cypher = {
+            "A": [],
+            "B": [],
+            "C": [],
+            "D": [],
+            "E": [],
+            "F": [],
+            "G": [],
+            "H": [],
+            "I": [],
+            "J": [],
+            "K": [],
+            "L": [],
+            "M": [],
+            "N": [],
+            "O": [],
+            "P": [],
+            "Q": [],
+            "R": [],
+            "S": [],
+            "T": [],
+            "U": [],
+            "V": [],
+            "W": [],
+            "X": [],
+            "Y": [],
+            "Z": []}
+
+    # Match possible decryption values to encrypted values
+    def add_cypher_keys(self, encrypted_value, decrypted_value):
+        # Make sure decrypted value is not already accounted for
+        if decrypted_value not in self.cypher[encrypted_value]:
+            self.cypher[encrypted_value].append(decrypted_value)
+
+
 class Alphabet():
     def __init__(self):
-        self.cypher = [
-            ["A", ""],
-            ["B", ""],
-            ["C", ""],
-            ["D", ""],
-            ["E", ""],
-            ["F", ""],
-            ["G", ""],
-            ["H", ""],
-            ["I", ""],
-            ["J", ""],
-            ["K", ""],
-            ["L", ""],
-            ["M", ""],
-            ["N", ""],
-            ["O", ""],
-            ["P", ""],
-            ["Q", ""],
-            ["R", ""],
-            ["S", ""],
-            ["T", ""],
-            ["U", ""],
-            ["V", ""],
-            ["W", ""],
-            ["X", ""],
-            ["Y", ""],
-            ["Z", ""]]
-
         # Statistical frequency of letters in the English language
         self.stat_frequency = [
             ["A", 0.084966],
@@ -223,8 +250,51 @@ class Cryptogram():
         self.words = []  # Access using [x][y], where x is the line number index and y is the word number index in that line
         self.letter_count = collections.Counter()  # Running count of letter appearances in encrypted text
         self.letters = Alphabet()
+        self.word_patterns = {}
+        self.cyphers = []
+        self.final_cypher = Cypher()
+        self.decrypted = None
+
+    # Remove any correctly decrypted letters from potential decryptions of other encrypted letters
+    def simplify_decryption(self):
+        solved = []
+
+        for letter in self.final_cypher.cypher:
+            if len(self.final_cypher.cypher[letter]) == 1:  # Only one potential decryption for encrypted value, must be correct
+                solved.append(self.final_cypher.cypher[letter][0])
+        
+        for letter in self.final_cypher.cypher:
+            if len(self.final_cypher.cypher[letter]) > 1:
+                for value in solved:
+                    if value in self.final_cypher.cypher[letter]:  # Remove already decrypted values from potential decrypted values
+                        self.final_cypher.cypher[letter].remove(value)
+                        if len(self.final_cypher.cypher[letter]) == 1:  # If removing already decrypted values leaves only one potential decrypted value, call function again
+                            self.simplify_decryption()
 
     def decrypt(self):
+        solved = []
+        for letter in self.final_cypher.cypher:
+            if len(self.final_cypher.cypher[letter]) == 1:
+                solved.append([letter, self.final_cypher.cypher[letter][0]])
+        self.decrypted = ''
+
+        for line in range(0, len(self.encrypted)):
+            for letter in range(0, len(self.encrypted[line])):
+                flag = True
+                for value in solved:
+                    if self.encrypted[line][letter] == value[0]:
+                        self.decrypted = ''.join((self.decrypted,value[1]))
+                        flag = False
+                        break
+                if flag:
+                    self.decrypted = ''.join((self.decrypted, self.encrypted[line][letter]))
+
+        print("encrypted")
+        print(self.encrypted)
+        print("decrypted")
+        print(self.decrypted)
+
+    def parse(self):
         # Parse encrypted file
         with open(self.file) as contents:
             self.encrypted = contents.readlines()
@@ -232,7 +302,20 @@ class Cryptogram():
         # Strip whitespaces and standardize letters to same case
         for line in range(0, len(self.encrypted)):
             self.encrypted[line] = self.encrypted[line].strip().upper()
-            self.words.append(self.encrypted[line].split(' '))
+            
+            # Split into words
+            words = self.encrypted[line].split(' ')
+            
+            # Check words for alphabetic characters
+            alphabetic = ''
+            alphabetic_line = []
+            for word in words:
+                for letter in word:
+                    if letter.isalpha():
+                        alphabetic = ''.join((alphabetic, letter))
+                alphabetic_line.append(alphabetic)
+                alphabetic = ''
+            self.words.append(alphabetic_line)
             self.count(self.encrypted[line])
 
         # Count the total number of alphabetic characters
@@ -251,13 +334,34 @@ class Cryptogram():
         # Determine word patterns for words in encrypted text
         for line in self.words:
             for word in line:
-                pattern = word_pattern(word)
+                pattern = get_word_pattern(word)
 
                 # Check for word pattern in pattern list
                 if pattern in self.word_patterns:
-                    self.word_patterns[pattern].append(word)  # Add English word to matching pattern key
+                    self.word_patterns[pattern].append(word)  # Add encrypted English word to matching pattern key
                 else:
-                    self.word_patterns[pattern] = [word]  # Create new pattern key and initialize value list with English word
+                    self.word_patterns[pattern] = [word]  # Create new pattern key and initialize value list with encrypted English word
+
+        # Compare word patterns in encrypted text to word patterns in English dictionary
+        for pattern in self.word_patterns:
+            # Map all potential decrypted values to corresponding encrypted values
+            for encrypted_match in self.word_patterns[pattern]:
+                cypher = Cypher()  # Create new cypher
+                for dictionary_match in dictionary_patterns[pattern]:
+                    for letter in range(0, len(pattern)):
+                        cypher.add_cypher_keys(encrypted_match[letter], dictionary_match[letter])
+                self.cyphers.append(cypher)
+
+        # Find common potential decrypted values in cyphers
+        self.final_cypher = common_keys(self.cyphers[0].cypher, self.cyphers[1].cypher)
+        for count in range(2, len(self.cyphers)):
+            self.final_cypher = common_keys(self.cyphers[count].cypher, self.final_cypher.cypher)
+
+        # Simplify common decrypted values
+        self.simplify_decryption()
+
+        # Decrypt as much of message as possible
+        self.decrypt()
 
     # Update letter count for file
     def count(self, word):
@@ -267,7 +371,7 @@ class Cryptogram():
 
 
 if __name__ == '__main__':
-    encrypted = Menu(
+    menu = Menu(
         "Crypto-Solver!", ((1, "Choose an encrypted file."), (2, "Decrypt cryptogram.")))
-    encrypted.mainloop()
-    encrypted.destroy()
+    menu.mainloop()
+    menu.destroy()
