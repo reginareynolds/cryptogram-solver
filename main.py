@@ -278,6 +278,7 @@ class Cryptogram():
                 solved.append([letter, self.final_cypher.cypher[letter][0]])
         self.decrypted = ''
 
+        count = 0  # Track how many letters were replaced
         for line in range(0, len(self.encrypted)):
             for letter in range(0, len(self.encrypted[line])):
                 flag = True
@@ -285,6 +286,7 @@ class Cryptogram():
                     if self.encrypted[line][letter] == value[0]:
                         self.decrypted = ''.join((self.decrypted,value[1]))
                         flag = False
+                        count = count + 1
                         break
                 if flag:
                     self.decrypted = ''.join((self.decrypted, self.encrypted[line][letter]))
@@ -293,6 +295,14 @@ class Cryptogram():
         print(self.encrypted)
         print("decrypted")
         print(self.decrypted)
+
+
+        # THREE CASES: 
+        # Case one: self.decrypted is identical to self.encrypted[0], meaning no letters were able to be replaced
+        # Case two: self.decrypted is not identical to self.encrypted[0], but count is not equal to len(self.encrypted[0]), meaning not all letters were replaced
+        # Case three: self. decrypted is not identical to self.encrypted[0], and count is equal to len(self.encrypted[0]), meaning all letters were replaced
+        if count != len(self.encrypted[0]):
+            self.find_key_words()
 
     def parse(self):
         # Parse encrypted file
