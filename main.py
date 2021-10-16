@@ -407,7 +407,6 @@ class Cryptogram():
     # TODO: Function that takes partially solved words and searches the dictionary for matching patterns that specifically have the solved letters in those spots
     def partially_solved(self):
         for line in range(0, len(self.words)):
-            patterns = []
             for word in self.words[line]:
                 index = 0
                 correct_indices = []
@@ -417,22 +416,31 @@ class Cryptogram():
                         correct_indices.append((index, self.final_cypher.cypher[letter]))
                     index = index + 1
 
-                print("word ", word)
-
                 # Only partially solved word
                 if len(correct_indices) != len(word):
                     pattern = get_word_pattern(word)
                     wrong_matches = []
+                    dictionary_matches = dictionary_patterns[pattern]
+                    
                     # Find matching dictionary patterns
-                    for dictionary_match in dictionary_patterns[pattern]:
-                        print(dictionary_match)
+                    for dictionary_match in dictionary_matches:
                         for correct_index in correct_indices:
-                            print("loop one")
-                            print(dictionary_match)
-                            # Remove any dictionary matches that don't have the solved letters in the correct spots
                             if dictionary_match[correct_index[0]] != correct_index[1][0]:
                                 wrong_matches.append(dictionary_match)
                                 break
+
+                    # Remove any dictionary matches that don't have the solved letters in the correct spots
+                    for match in wrong_matches:
+                        dictionary_matches.remove(match)
+
+                    print(self.final_cypher.cypher)
+                    cypher = Cypher()  # Create new cypher
+                    for dictionary_match in dictionary_matches:
+                        for letter in range(0, len(word)):
+                            cypher.add_cypher_keys(
+                                word[letter], dictionary_match[letter])
+                    self.final_cypher = common_keys(cypher.cypher, self.final_cypher.cypher)        
+                    self.simplify_decryption()
 
 if __name__ == '__main__':
     menu = Menu(
