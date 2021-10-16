@@ -263,6 +263,7 @@ class Cryptogram():
     # Remove any correctly decrypted letters from potential decryptions of other encrypted letters
     def simplify_decryption(self):
         solved = []
+        rerun = []
 
         for letter in self.final_cypher.cypher:
             # Only one potential decryption for encrypted value, must be correct
@@ -275,8 +276,12 @@ class Cryptogram():
                     # Remove already decrypted values from potential decrypted values
                     if value in self.final_cypher.cypher[letter]:
                         self.final_cypher.cypher[letter].remove(value)
-                        # If removing already decrypted values leaves only one potential decrypted value, call function again
+        
+        # If removing already decrypted values leaves more letters with only one potential decrypted value, call function again
+        for letter in self.final_cypher.cypher:
                         if len(self.final_cypher.cypher[letter]) == 1:
+                rerun.append(self.final_cypher.cypher[letter][0])
+        if len(rerun) > len(solved):
                             self.simplify_decryption()
 
     def decrypt(self):
@@ -420,7 +425,7 @@ class Cryptogram():
                 if len(correct_indices) != len(word):
                     pattern = get_word_pattern(word)
                     wrong_matches = []
-                    dictionary_matches = dictionary_patterns[pattern]
+                    dictionary_matches = dictionary_patterns[pattern].copy()
                     
                     # Find matching dictionary patterns
                     for dictionary_match in dictionary_matches:
