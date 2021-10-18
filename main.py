@@ -11,7 +11,6 @@ class Menu(Tk):
         # Final variables
         self.path = None
         self.encoded = Cryptogram()
-        self.decoded = None
 
         # CREATE MENU ITEMS
 
@@ -181,10 +180,12 @@ class Cypher():
             "Z": []}
 
     # Match possible decryption values to encrypted values
-    def add_cypher_keys(self, encrypted_value, decrypted_value):
+    def add_cypher_keys(self, length, encrypted_value, decrypted_source):
+        for decrypted_value in decrypted_source:
+            for letter in range(0, length):
         # Make sure decrypted value is not already accounted for
-        if decrypted_value not in self.cypher[encrypted_value]:
-            self.cypher[encrypted_value].append(decrypted_value)
+                if decrypted_value[letter] not in self.cypher[encrypted_value[letter]]:
+                    self.cypher[encrypted_value[letter]].append(decrypted_value[letter])
 
 
 class Alphabet():
@@ -310,7 +311,6 @@ class Cryptogram():
         print("decrypted")
         print(self.decrypted)
 
-
         # THREE CASES: 
         # Case one: self.decrypted is identical to self.encrypted[0], meaning no letters were able to be replaced
         # Case two: self.decrypted is not identical to self.encrypted[0], but count is not equal to len(self.encrypted[0]), meaning not all letters were replaced
@@ -374,10 +374,7 @@ class Cryptogram():
             # Map all potential decrypted values to corresponding encrypted values
             for encrypted_match in self.word_patterns[pattern]:
                 cypher = Cypher()  # Create new cypher
-                for dictionary_match in dictionary_patterns[pattern]:
-                    for letter in range(0, len(pattern)):
-                        cypher.add_cypher_keys(
-                            encrypted_match[letter], dictionary_match[letter])
+                cypher.add_cypher_keys(len(pattern), encrypted_match, dictionary_patterns[pattern])
                 self.cyphers.append(cypher)
 
         # Find common potential decrypted values in cyphers
@@ -425,7 +422,7 @@ class Cryptogram():
                 if len(correct_indices) != len(word):
                     pattern = get_word_pattern(word)
                     wrong_matches = []
-                    dictionary_matches = dictionary_patterns[pattern].copy()
+                    dictionary_matches = deepcopy(dictionary_patterns[pattern])
                     
                     # Find matching dictionary patterns
                     for dictionary_match in dictionary_matches:
@@ -440,12 +437,10 @@ class Cryptogram():
 
                     print(self.final_cypher.cypher)
                     cypher = Cypher()  # Create new cypher
-                    for dictionary_match in dictionary_matches:
-                        for letter in range(0, len(word)):
-                            cypher.add_cypher_keys(
-                                word[letter], dictionary_match[letter])
+                    cypher.add_cypher_keys(len(word), word, dictionary_matches)
                     self.final_cypher = common_keys(cypher.cypher, self.final_cypher.cypher)        
                     self.simplify_decryption()
+
 
 if __name__ == '__main__':
     menu = Menu(
