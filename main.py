@@ -321,11 +321,8 @@ class Cryptogram():
                 self.cyphers.append(cypher)
 
         # Find common potential decrypted values in cyphers
-        self.final_cypher = common_keys(
-            self.cyphers[0].cypher, self.cyphers[1].cypher)
-        for count in range(2, len(self.cyphers)):
-            self.final_cypher = common_keys(
-                self.cyphers[count].cypher, self.final_cypher.cypher)
+        for count in range (0, len(self.cyphers)):
+            self.final_cypher = common_keys(self.cyphers[count].cypher, self.final_cypher.cypher)
 
         # Simplify common decrypted values
         self.simplify_decryption()
@@ -345,30 +342,29 @@ class Cryptogram():
         solved = []
         rerun = []
 
-        for letter in self.final_cypher.cypher:
-            # Only one potential decryption for encrypted value, must be correct
-            if len(self.final_cypher.cypher[letter]) == 1:
-                solved.append(self.final_cypher.cypher[letter][0])
+        self.solved_letters(solved)
 
         for letter in self.final_cypher.cypher:
             if len(self.final_cypher.cypher[letter]) > 1:
                 for value in solved:
                     # Remove already decrypted values from potential decrypted values
-                    if value in self.final_cypher.cypher[letter]:
-                        self.final_cypher.cypher[letter].remove(value)
+                    if value[1] in self.final_cypher.cypher[letter]:
+                        self.final_cypher.cypher[letter].remove(value[1])
 
         # If removing already decrypted values leaves more letters with only one potential decrypted value, call function again
-        for letter in self.final_cypher.cypher:
-            if len(self.final_cypher.cypher[letter]) == 1:
-                rerun.append(self.final_cypher.cypher[letter][0])
+        self.solved_letters(rerun)
         if len(rerun) > len(solved):
             self.simplify_decryption()
 
-    def decrypt(self):
-        solved = []
+    # Find letters with only one potential decryption for encrypted value, which must be correct
+    def solved_letters(self, list):
         for letter in self.final_cypher.cypher:
             if len(self.final_cypher.cypher[letter]) == 1:
-                solved.append([letter, self.final_cypher.cypher[letter][0]])
+                list.append([letter, self.final_cypher.cypher[letter][0]])
+
+    def decrypt(self):
+        solved = []
+        self.solved_letters(solved)
         self.decrypted = ''
 
         count = 0  # Track how many letters were replaced
@@ -398,12 +394,12 @@ class Cryptogram():
             self.partially_solved()
             # self.find_key_words()
 
-    # TODO: Function that takes partially solved words and searches the dictionary for matching patterns that specifically have the solved letters in those spots
+    # Takes partially solved words and searches the dictionary for matching patterns that specifically have the solved letters in those spots
     def partially_solved(self):
         for line in range(0, len(self.words)):
             for word in self.words[line]:
                 index = 0
-                correct_indices = []
+                correct_indices = []  # Holds solved letters and their position in the word
                 for letter in word:
                     # Solved letter
                     if len(self.final_cypher.cypher[letter]) == 1:
