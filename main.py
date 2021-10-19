@@ -262,64 +262,6 @@ class Cryptogram():
         self.final_cypher = Cypher()
         self.decrypted = None
 
-    # Remove any correctly decrypted letters from potential decryptions of other encrypted letters
-    def simplify_decryption(self):
-        solved = []
-        rerun = []
-
-        for letter in self.final_cypher.cypher:
-            # Only one potential decryption for encrypted value, must be correct
-            if len(self.final_cypher.cypher[letter]) == 1:
-                solved.append(self.final_cypher.cypher[letter][0])
-
-        for letter in self.final_cypher.cypher:
-            if len(self.final_cypher.cypher[letter]) > 1:
-                for value in solved:
-                    # Remove already decrypted values from potential decrypted values
-                    if value in self.final_cypher.cypher[letter]:
-                        self.final_cypher.cypher[letter].remove(value)
-
-        # If removing already decrypted values leaves more letters with only one potential decrypted value, call function again
-        for letter in self.final_cypher.cypher:
-            if len(self.final_cypher.cypher[letter]) == 1:
-                rerun.append(self.final_cypher.cypher[letter][0])
-        if len(rerun) > len(solved):
-            self.simplify_decryption()
-
-    def decrypt(self):
-        solved = []
-        for letter in self.final_cypher.cypher:
-            if len(self.final_cypher.cypher[letter]) == 1:
-                solved.append([letter, self.final_cypher.cypher[letter][0]])
-        self.decrypted = ''
-
-        count = 0  # Track how many letters were replaced
-        for line in range(0, len(self.encrypted)):
-            for letter in range(0, len(self.encrypted[line])):
-                flag = True
-                for value in solved:
-                    if self.encrypted[line][letter] == value[0]:
-                        self.decrypted = ''.join((self.decrypted, value[1]))
-                        flag = False
-                        count = count + 1
-                        break
-                if flag:
-                    self.decrypted = ''.join(
-                        (self.decrypted, self.encrypted[line][letter]))
-
-        print("encrypted")
-        print(self.encrypted)
-        print("decrypted")
-        print(self.decrypted)
-
-        # THREE CASES:
-        # Case one: self.decrypted is identical to self.encrypted[0], meaning no letters were able to be replaced
-        # Case two: self.decrypted is not identical to self.encrypted[0], but count is not equal to len(self.encrypted[0]), meaning not all letters were replaced
-        # Case three: self. decrypted is not identical to self.encrypted[0], and count is equal to len(self.encrypted[0]), meaning all letters were replaced
-        if count != len(self.encrypted[0]):
-            self.partially_solved()
-            # self.find_key_words()
-
     def parse(self):
         # Parse encrypted file
         with open(self.file) as contents:
@@ -398,40 +340,63 @@ class Cryptogram():
 
         # TODO: Account for letter frequency
 
-    # Identify potential key words and prefixes/suffixes
-    def find_key_words(self):
-        # Key three letter words: and, are, but, for, had, her, his, its, nor, she, the, was, yet
-        # Key two letter words: am, an, as, at, be, by, do, go, he, if, in, is, it, me, my, no, of, on, or, so, to, up, us, we
-        # Key one letter words: I, a
-        # Key prefixes: bi-, co-, de-, dis-, ex-, in-, mis-, non-, post-, pre-, pro-, re-, sub-, un-
-        # Key suffixes: -able, -acy, -al, -ate, -dom, -ed, -en, -er, -ful, -fy, -ing, -ion, -ish, -ist, -ive, -ize, -less, -ment, -ness, -or, -ship, -ty, -y
-        # Key double letters, in order of frequency in the English language: ll, ss, ee, oo, tt, ff, pp, rr
+    # Remove any correctly decrypted letters from potential decryptions of other encrypted letters
+    def simplify_decryption(self):
+        solved = []
+        rerun = []
 
-        for line in range(0, len(self.words)):
-            for word in self.words[line]:
-                # One letter words
-                if len(word) == 1:
-                    # Not solved yet
-                    if len(self.final_cypher.cypher[word]) != 1:
-                        # If only one of the one letter words is present, it is automatically correct
-                        if 'A' in self.final_cypher.cypher[word] and 'I' not in self.final_cypher.cypher[word]:
-                            self.final_cypher.cypher[word] = 'A'
-                        elif 'I' in self.final_cypher.cypher[word] and 'A' not in self.final_cypher.cypher[word]:
-                            self.final_cypher.cypher[word] = 'I'
-                        # Otherwise, add both one letter words as possibilities as needed
-                        else:
-                            if 'A' not in self.final_cypher.cypher[word]:
-                                self.final_cypher.append('A')
-                            if 'I' not in self.final_cypher.cypher[word]:
-                                self.final_cypher.append('I')
-                # Two letter words
-                if len(word) == 2:
-                    first_letter = word[0]
-                    second_letter = word[1]
-                    # Either letter not solved yet
-                    if len(self.final_cypher.cypher[first_letter]) == 1:
-                        if len(self.final_cypher.cypher[second_letter]) != 1:
-                            pass
+        for letter in self.final_cypher.cypher:
+            # Only one potential decryption for encrypted value, must be correct
+            if len(self.final_cypher.cypher[letter]) == 1:
+                solved.append(self.final_cypher.cypher[letter][0])
+
+        for letter in self.final_cypher.cypher:
+            if len(self.final_cypher.cypher[letter]) > 1:
+                for value in solved:
+                    # Remove already decrypted values from potential decrypted values
+                    if value in self.final_cypher.cypher[letter]:
+                        self.final_cypher.cypher[letter].remove(value)
+
+        # If removing already decrypted values leaves more letters with only one potential decrypted value, call function again
+        for letter in self.final_cypher.cypher:
+            if len(self.final_cypher.cypher[letter]) == 1:
+                rerun.append(self.final_cypher.cypher[letter][0])
+        if len(rerun) > len(solved):
+            self.simplify_decryption()
+
+    def decrypt(self):
+        solved = []
+        for letter in self.final_cypher.cypher:
+            if len(self.final_cypher.cypher[letter]) == 1:
+                solved.append([letter, self.final_cypher.cypher[letter][0]])
+        self.decrypted = ''
+
+        count = 0  # Track how many letters were replaced
+        for line in range(0, len(self.encrypted)):
+            for letter in range(0, len(self.encrypted[line])):
+                flag = True
+                for value in solved:
+                    if self.encrypted[line][letter] == value[0]:
+                        self.decrypted = ''.join((self.decrypted, value[1]))
+                        flag = False
+                        count = count + 1
+                        break
+                if flag:
+                    self.decrypted = ''.join(
+                        (self.decrypted, self.encrypted[line][letter]))
+
+        print("encrypted")
+        print(self.encrypted)
+        print("decrypted")
+        print(self.decrypted)
+
+        # THREE CASES:
+        # Case one: self.decrypted is identical to self.encrypted[0], meaning no letters were able to be replaced
+        # Case two: self.decrypted is not identical to self.encrypted[0], but count is not equal to len(self.encrypted[0]), meaning not all letters were replaced
+        # Case three: self. decrypted is not identical to self.encrypted[0], and count is equal to len(self.encrypted[0]), meaning all letters were replaced
+        if count != len(self.encrypted[0]):
+            self.partially_solved()
+            # self.find_key_words()
 
     # TODO: Function that takes partially solved words and searches the dictionary for matching patterns that specifically have the solved letters in those spots
     def partially_solved(self):
@@ -467,6 +432,41 @@ class Cryptogram():
                     cypher.add_cypher_keys(len(word), word, dictionary_matches)
                     self.final_cypher = common_keys(cypher.cypher, self.final_cypher.cypher)
                     self.simplify_decryption()
+
+    # Identify potential key words and prefixes/suffixes
+    def find_key_words(self):
+        # Key three letter words: and, are, but, for, had, her, his, its, nor, she, the, was, yet
+        # Key two letter words: am, an, as, at, be, by, do, go, he, if, in, is, it, me, my, no, of, on, or, so, to, up, us, we
+        # Key one letter words: I, a
+        # Key prefixes: bi-, co-, de-, dis-, ex-, in-, mis-, non-, post-, pre-, pro-, re-, sub-, un-
+        # Key suffixes: -able, -acy, -al, -ate, -dom, -ed, -en, -er, -ful, -fy, -ing, -ion, -ish, -ist, -ive, -ize, -less, -ment, -ness, -or, -ship, -ty, -y
+        # Key double letters, in order of frequency in the English language: ll, ss, ee, oo, tt, ff, pp, rr
+
+        for line in range(0, len(self.words)):
+            for word in self.words[line]:
+                # One letter words
+                if len(word) == 1:
+                    # Not solved yet
+                    if len(self.final_cypher.cypher[word]) != 1:
+                        # If only one of the one letter words is present, it is automatically correct
+                        if 'A' in self.final_cypher.cypher[word] and 'I' not in self.final_cypher.cypher[word]:
+                            self.final_cypher.cypher[word] = 'A'
+                        elif 'I' in self.final_cypher.cypher[word] and 'A' not in self.final_cypher.cypher[word]:
+                            self.final_cypher.cypher[word] = 'I'
+                        # Otherwise, add both one letter words as possibilities as needed
+                        else:
+                            if 'A' not in self.final_cypher.cypher[word]:
+                                self.final_cypher.append('A')
+                            if 'I' not in self.final_cypher.cypher[word]:
+                                self.final_cypher.append('I')
+                # Two letter words
+                if len(word) == 2:
+                    first_letter = word[0]
+                    second_letter = word[1]
+                    # Either letter not solved yet
+                    if len(self.final_cypher.cypher[first_letter]) == 1:
+                        if len(self.final_cypher.cypher[second_letter]) != 1:
+                            pass
 
 
 if __name__ == '__main__':
