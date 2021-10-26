@@ -4,6 +4,8 @@ from tkinter import Button, Frame, Tk, messagebox
 from tkinter.filedialog import askopenfilename
 from patterns import get_word_pattern
 from word_patterns import dictionary_patterns
+from copy import deepcopy
+from math import prod
 
 
 class Menu(Tk):
@@ -11,7 +13,6 @@ class Menu(Tk):
         # Final variables
         self.path = None
         self.encoded = Cryptogram()
-        self.decoded = None
 
         # CREATE MENU ITEMS
 
@@ -95,7 +96,8 @@ class Menu(Tk):
             self.path = None  # Reset path
             self.rows[0].config(text=self.buttons[0][1])  # Reset button text
         else:
-            self.rows[0].config(text=self.path)  # Change button text to selected path
+            # Change button text to selected path
+            self.rows[0].config(text=self.path)
 
         self.enable()
         self.show(self)
@@ -134,16 +136,20 @@ def common_keys(cypher_one, cypher_two):
     common_cypher = Cypher()
     for letter in cypher_one:
         if cypher_one[letter] == []:  # First cypher is empty
-            for value in cypher_two[letter]:  # Copy over everything from second cypher
+            # Copy over everything from second cypher
+            for value in cypher_two[letter]:
                 common_cypher.cypher[letter].append(value)
         elif cypher_two[letter] == []:  # Second cypher is empty
-            for value in cypher_one[letter]:  # Copy over everything from first cypher
+            # Copy over everything from first cypher
+            for value in cypher_one[letter]:
                 common_cypher.cypher[letter].append(value)
         else:
             for value in cypher_one[letter]:  # First cypher has a value
-                if value in cypher_two[letter]:  # Second cypher has the same value
+                # Second cypher has the same value
+                if value in cypher_two[letter]:
                     common_cypher.cypher[letter].append(value)
     return common_cypher
+
 
 class Cypher():
     def __init__(self):
@@ -176,10 +182,12 @@ class Cypher():
             "Z": []}
 
     # Match possible decryption values to encrypted values
-    def add_cypher_keys(self, encrypted_value, decrypted_value):
-        # Make sure decrypted value is not already accounted for
-        if decrypted_value not in self.cypher[encrypted_value]:
-            self.cypher[encrypted_value].append(decrypted_value)
+    def add_cypher_keys(self, length, encrypted_value, decrypted_source):
+        for decrypted_value in decrypted_source:
+            for letter in range(0, length):
+                # Make sure decrypted value is not already accounted for
+                if decrypted_value[letter] not in self.cypher[encrypted_value[letter]]:
+                    self.cypher[encrypted_value[letter]].append(decrypted_value[letter])
 
 
 class Alphabet():
@@ -213,7 +221,7 @@ class Alphabet():
             ["Y", 0.017779],
             ["Z", 0.002722]]
 
-        # Actual frequency of letters in text    
+        # Actual frequency of letters in text
         self.frequency = [
             ["A", None],
             ["B", None],
@@ -241,7 +249,7 @@ class Alphabet():
             ["X", None],
             ["Y", None],
             ["Z", None]]
-            
+
 
 class Cryptogram():
     def __init__(self):
@@ -254,45 +262,7 @@ class Cryptogram():
         self.cyphers = []
         self.final_cypher = Cypher()
         self.decrypted = None
-
-    # Remove any correctly decrypted letters from potential decryptions of other encrypted letters
-    def simplify_decryption(self):
-        solved = []
-
-        for letter in self.final_cypher.cypher:
-            if len(self.final_cypher.cypher[letter]) == 1:  # Only one potential decryption for encrypted value, must be correct
-                solved.append(self.final_cypher.cypher[letter][0])
-        
-        for letter in self.final_cypher.cypher:
-            if len(self.final_cypher.cypher[letter]) > 1:
-                for value in solved:
-                    if value in self.final_cypher.cypher[letter]:  # Remove already decrypted values from potential decrypted values
-                        self.final_cypher.cypher[letter].remove(value)
-                        if len(self.final_cypher.cypher[letter]) == 1:  # If removing already decrypted values leaves only one potential decrypted value, call function again
-                            self.simplify_decryption()
-
-    def decrypt(self):
-        solved = []
-        for letter in self.final_cypher.cypher:
-            if len(self.final_cypher.cypher[letter]) == 1:
-                solved.append([letter, self.final_cypher.cypher[letter][0]])
-        self.decrypted = ''
-
-        for line in range(0, len(self.encrypted)):
-            for letter in range(0, len(self.encrypted[line])):
-                flag = True
-                for value in solved:
-                    if self.encrypted[line][letter] == value[0]:
-                        self.decrypted = ''.join((self.decrypted,value[1]))
-                        flag = False
-                        break
-                if flag:
-                    self.decrypted = ''.join((self.decrypted, self.encrypted[line][letter]))
-
-        print("encrypted")
-        print(self.encrypted)
-        print("decrypted")
-        print(self.decrypted)
+        self.dict_length = 0
 
     def parse(self):
         # Parse encrypted file
@@ -302,10 +272,10 @@ class Cryptogram():
         # Strip whitespaces and standardize letters to same case
         for line in range(0, len(self.encrypted)):
             self.encrypted[line] = self.encrypted[line].strip().upper()
-            
+
             # Split into words
             words = self.encrypted[line].split(' ')
-            
+
             # Check words for alphabetic characters
             alphabetic = ''
             alphabetic_line = []
@@ -338,23 +308,22 @@ class Cryptogram():
 
                 # Check for word pattern in pattern list
                 if pattern in self.word_patterns:
-                    self.word_patterns[pattern].append(word)  # Add encrypted English word to matching pattern key
+                    # Add encrypted English word to matching pattern key
+                    self.word_patterns[pattern].append(word)
                 else:
-                    self.word_patterns[pattern] = [word]  # Create new pattern key and initialize value list with encrypted English word
+                    # Create new pattern key and initialize value list with encrypted English word
+                    self.word_patterns[pattern] = [word]
 
         # Compare word patterns in encrypted text to word patterns in English dictionary
         for pattern in self.word_patterns:
             # Map all potential decrypted values to corresponding encrypted values
             for encrypted_match in self.word_patterns[pattern]:
                 cypher = Cypher()  # Create new cypher
-                for dictionary_match in dictionary_patterns[pattern]:
-                    for letter in range(0, len(pattern)):
-                        cypher.add_cypher_keys(encrypted_match[letter], dictionary_match[letter])
+                cypher.add_cypher_keys(len(pattern), encrypted_match, dictionary_patterns[pattern])
                 self.cyphers.append(cypher)
 
         # Find common potential decrypted values in cyphers
-        self.final_cypher = common_keys(self.cyphers[0].cypher, self.cyphers[1].cypher)
-        for count in range(2, len(self.cyphers)):
+        for count in range (0, len(self.cyphers)):
             self.final_cypher = common_keys(self.cyphers[count].cypher, self.final_cypher.cypher)
 
         # Simplify common decrypted values
@@ -362,6 +331,7 @@ class Cryptogram():
 
         # Decrypt as much of message as possible
         self.decrypt()
+        # TODO: Determine how many times to rerun decrypt function
 
     # Update letter count for file
     def count(self, word):
@@ -369,6 +339,199 @@ class Cryptogram():
 
         # TODO: Account for letter frequency
 
+    # Remove any correctly decrypted letters from potential decryptions of other encrypted letters
+    def simplify_decryption(self):
+        # Get dictionary length
+        self.dict_length = sum([len(val) for val in self.final_cypher.cypher.values()])
+
+        solved = []
+        rerun = []
+
+        self.solved_letters(solved)
+
+        for letter in self.final_cypher.cypher:
+            if len(self.final_cypher.cypher[letter]) > 1:
+                for value in solved:
+                    # Remove already decrypted values from potential decrypted values
+                    if value[1] in self.final_cypher.cypher[letter]:
+                        self.final_cypher.cypher[letter].remove(value[1])
+
+        # If removing already decrypted values leaves more letters with only one potential decrypted value, call function again
+        self.solved_letters(rerun)
+        if len(rerun) > len(solved):
+            self.simplify_decryption()
+
+    # Find letters with only one potential decryption for encrypted value, which must be correct
+    def solved_letters(self, list):
+        for letter in self.final_cypher.cypher:
+            if len(self.final_cypher.cypher[letter]) == 1:
+                list.append([letter, self.final_cypher.cypher[letter][0]])
+
+    def decrypt(self):
+        solved = []
+        self.solved_letters(solved)
+        self.decrypted = ''
+
+        count = 0  # Track how many letters were replaced
+        for line in range(0, len(self.encrypted)):
+            for letter in range(0, len(self.encrypted[line])):
+                flag = True
+                for value in solved:
+                    # If encrypted letter matches a solved letter, replace it with solution
+                    if self.encrypted[line][letter] == value[0]:
+                        self.decrypted = ''.join((self.decrypted, value[1]))
+                        flag = False
+                        count = count + 1
+                        break
+                if flag:
+                    self.decrypted = ''.join(
+                        (self.decrypted, self.encrypted[line][letter]))
+
+        print("encrypted")
+        print(self.encrypted)
+        print("decrypted")
+        print(self.decrypted)
+
+        # THREE CASES:
+        # Case one: self.decrypted is identical to self.encrypted[0], meaning no letters were able to be replaced
+        # Case two: self.decrypted is not identical to self.encrypted[0], but count is not equal to len(self.encrypted[0]), meaning not all letters were replaced
+        # Case three: self. decrypted is not identical to self.encrypted[0], and count is equal to len(self.encrypted[0]), meaning all letters were replaced
+        if count != len(self.encrypted[0]):
+            self.partially_solved()
+            # self.find_key_words()
+            self.rerun_check()
+
+    # Takes partially solved words and searches the dictionary for matching patterns that specifically have the solved letters in those spots
+    def partially_solved(self):
+        for line in range(0, len(self.words)):
+            for word in self.words[line]:
+                index = 0
+                correct_indices = []  # Holds solved letters and their position in the word
+                for letter in word:
+                    # Solved letter
+                    # TODO: Incorporate solved_letters function
+                    if len(self.final_cypher.cypher[letter]) == 1:
+                        correct_indices.append((index, self.final_cypher.cypher[letter]))
+                    index = index + 1
+
+                # Only partially solved word
+                if len(correct_indices) != len(word):
+                    pattern = get_word_pattern(word)
+                    wrong_matches = []
+                    dictionary_matches = deepcopy(dictionary_patterns[pattern])
+
+                    # Find matching dictionary patterns
+                    for dictionary_match in dictionary_matches:
+                        for correct_index in correct_indices:
+                            if dictionary_match[correct_index[0]] != correct_index[1][0]:
+                                wrong_matches.append(dictionary_match)
+                                break
+
+                    # Remove any dictionary matches that don't have the solved letters in the correct spots
+                    for match in wrong_matches:
+                        dictionary_matches.remove(match)
+
+                    print(self.final_cypher.cypher)
+                    cypher = Cypher()  # Create new cypher
+                    cypher.add_cypher_keys(len(word), word, dictionary_matches)
+                    self.final_cypher = common_keys(cypher.cypher, self.final_cypher.cypher)
+                    self.simplify_decryption()
+# TODO: Potentially remove all keys that are not solved, then search for dictionary matches with solved letters in correct spots and add corresponding new possibilities to unsolved letters
+    
+    # Determine if decryption should be rerun
+    def rerun_check(self):
+        # Dictionary length changed, decryption should be rerun
+        if sum([len(val) for val in self.final_cypher.cypher.values()]) < self.dict_length:
+            self.decrypt()
+        else:
+            self.letter_probability()
+
+    # Identify potential key words and prefixes/suffixes
+    def find_key_words(self):
+        # Key three letter words: and, are, but, for, had, her, his, its, nor, she, the, was, yet
+        # Key two letter words: am, an, as, at, be, by, do, go, he, if, in, is, it, me, my, no, of, on, or, so, to, up, us, we
+        # Key one letter words: I, a
+        # Key prefixes: bi-, co-, de-, dis-, ex-, in-, mis-, non-, post-, pre-, pro-, re-, sub-, un-
+        # Key suffixes: -able, -acy, -al, -ate, -dom, -ed, -en, -er, -ful, -fy, -ing, -ion, -ish, -ist, -ive, -ize, -less, -ment, -ness, -or, -ship, -ty, -y
+        # Key double letters, in order of frequency in the English language: ll, ss, ee, oo, tt, ff, pp, rr
+
+        for line in range(0, len(self.words)):
+            for word in self.words[line]:
+                # One letter words
+                if len(word) == 1:
+                    # Not solved yet
+                    if len(self.final_cypher.cypher[word]) != 1:
+                        # If only one of the one letter words is present, it is automatically correct
+                        if 'A' in self.final_cypher.cypher[word] and 'I' not in self.final_cypher.cypher[word]:
+                            self.final_cypher.cypher[word] = 'A'
+                        elif 'I' in self.final_cypher.cypher[word] and 'A' not in self.final_cypher.cypher[word]:
+                            self.final_cypher.cypher[word] = 'I'
+                        # Otherwise, add both one letter words as possibilities as needed
+                        else:
+                            if 'A' not in self.final_cypher.cypher[word]:
+                                self.final_cypher.append('A')
+                            if 'I' not in self.final_cypher.cypher[word]:
+                                self.final_cypher.append('I')
+                # Two letter words
+                if len(word) == 2:
+                    first_letter = word[0]
+                    second_letter = word[1]
+                    # Either letter not solved yet
+                    if len(self.final_cypher.cypher[first_letter]) == 1:
+                        if len(self.final_cypher.cypher[second_letter]) != 1:
+                            pass
+    
+    def letter_probability(self):
+        solved = []
+        self.solved_letters(solved)
+        decrypted = ''
+        possible_decryptions = []
+
+        incorrect_letters = Cypher()  # Access using [x], where x is the encrypted, unsolved letter. Returns indices containing x
+
+        unsolved_letters = []  # List of unsolved letters and their possible decryptions
+        for letter in self.final_cypher.cypher:
+            if len(self.final_cypher.cypher[letter]) > 1:  # TODO: Should this be greater than 1 or != 1?
+                unsolved_letters.append((letter, self.final_cypher.cypher[letter]))
+
+        # TODO: Potentially incorporate into decryption function here
+        wrong_letter = 0
+        for line in range(0, len(self.encrypted)):  # TODO: Replace self.words with self.encrypted
+            for letter in range(0, len(self.encrypted[line])):
+                flag = True
+                for value in solved:
+                    # If encrypted letter matches a solved letter, replace it with solution
+                    if self.encrypted[line][letter] == value[0]:
+                        decrypted = ''.join((decrypted, value[1]))
+                        flag = False
+                        break
+                if flag:
+                    decrypted = ''.join((decrypted, self.encrypted[line][letter]))
+                    if self.encrypted[line][letter].isalpha():
+                        incorrect_letters.cypher[self.encrypted[line][letter]].append(wrong_letter)
+                wrong_letter = wrong_letter + 1    
+
+
+        # Determine the number of possible decryptions using combinations of unsolved letters
+        possibility_count = prod([len(val[1]) for val in unsolved_letters])
+        for count in range(0, possibility_count):
+            possible = list(deepcopy(decrypted))
+            possible_decryptions.append(possible)
+
+        # Determine how many decryptions each potential letter solution should be in
+        for unsolved_letter in unsolved_letters:
+            count = 0
+            interval = int(len(possible_decryptions)/len(unsolved_letter[1]))
+            for x in range(0, len(possible_decryptions), interval):
+                for decryption in possible_decryptions[x:x+interval]:
+                    for index in incorrect_letters.cypher[unsolved_letter[0]]:
+                        decryption[index] = unsolved_letter[1][count]
+                count = count + 1
+
+        print("Possible decryptions:")
+        for decryption in possible_decryptions:
+            print(''.join(decryption))
+#TODO: Account for partially solved separated words (self.words, not self.encrypted) and give user option to confirm based on word frequency
 
 if __name__ == '__main__':
     menu = Menu(
