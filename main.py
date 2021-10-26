@@ -372,6 +372,7 @@ class Cryptogram():
             for letter in range(0, len(self.encrypted[line])):
                 flag = True
                 for value in solved:
+                    # If encrypted letter matches a solved letter, replace it with solution
                     if self.encrypted[line][letter] == value[0]:
                         self.decrypted = ''.join((self.decrypted, value[1]))
                         flag = False
@@ -428,7 +429,7 @@ class Cryptogram():
                     cypher.add_cypher_keys(len(word), word, dictionary_matches)
                     self.final_cypher = common_keys(cypher.cypher, self.final_cypher.cypher)
                     self.simplify_decryption()
-
+# TODO: Potentially remove all keys that are not solved, then search for dictionary matches with solved letters in correct spots and add corresponding new possibilities to unsolved letters
     # Identify potential key words and prefixes/suffixes
     def find_key_words(self):
         # Key three letter words: and, are, but, for, had, her, his, its, nor, she, the, was, yet
@@ -463,8 +464,43 @@ class Cryptogram():
                     if len(self.final_cypher.cypher[first_letter]) == 1:
                         if len(self.final_cypher.cypher[second_letter]) != 1:
                             pass
+    
+    def letter_probability(self):
+        solved = []
+        self.solved_letters(solved)
+        decrypted = ''
+        possible_decryptions = []
+        partial_copies = []
+
+        incorrect_letters = Cypher()  # Access using [x][y], where x is the word index and y is the letter index
+        # unsolved = []
+        unsolved_letters = []
+        partial_words = []
+        for letter in self.final_cypher.cypher:
+            if len(self.final_cypher.cypher[letter]) > 1:  # TODO: Should this be greater than 1 or != 1?
+                unsolved_letters.append((letter, self.final_cypher.cypher[letter]))
+
+        wrong_letter = 0
+        for line in range(0, len(self.encrypted)):  # TODO: Replace self.words with self.encrypted
+            for letter in range(0, len(self.encrypted[line])):
+                flag = True
+                for value in solved:
+                    # If encrypted letter matches a solved letter, replace it with solution
+                    if self.encrypted[line][letter] == value[0]:
+                        decrypted = ''.join((decrypted, value[1]))
+                        flag = False
+                        # count = count + 1
+                        break
+                if flag:
+                    decrypted = ''.join((decrypted, self.encrypted[line][letter]))
+                    # incorrect_letters.append((word, letter))
+                    if self.encrypted[line][letter].isalpha():
+                        incorrect_letters.cypher[self.encrypted[line][letter]].append(wrong_letter)
+                wrong_letter = wrong_letter + 1    
 
 
+        for decryption in possible_decryptions:
+            print(''.join(decryption))
 if __name__ == '__main__':
     menu = Menu(
         "Crypto-Solver!", ((1, "Choose an encrypted file."), (2, "Decrypt cryptogram.")))
