@@ -5,6 +5,7 @@ from tkinter.filedialog import askopenfilename
 from patterns import get_word_pattern
 from word_patterns import dictionary_patterns
 from copy import deepcopy
+from math import prod
 
 
 class Menu(Tk):
@@ -408,6 +409,7 @@ class Cryptogram():
                 correct_indices = []  # Holds solved letters and their position in the word
                 for letter in word:
                     # Solved letter
+                    # TODO: Incorporate solved_letters function
                     if len(self.final_cypher.cypher[letter]) == 1:
                         correct_indices.append((index, self.final_cypher.cypher[letter]))
                     index = index + 1
@@ -484,16 +486,15 @@ class Cryptogram():
         self.solved_letters(solved)
         decrypted = ''
         possible_decryptions = []
-        partial_copies = []
 
-        incorrect_letters = Cypher()  # Access using [x][y], where x is the word index and y is the letter index
-        # unsolved = []
-        unsolved_letters = []
-        partial_words = []
+        incorrect_letters = Cypher()  # Access using [x], where x is the encrypted, unsolved letter. Returns indices containing x
+
+        unsolved_letters = []  # List of unsolved letters and their possible decryptions
         for letter in self.final_cypher.cypher:
             if len(self.final_cypher.cypher[letter]) > 1:  # TODO: Should this be greater than 1 or != 1?
                 unsolved_letters.append((letter, self.final_cypher.cypher[letter]))
 
+        # TODO: Potentially incorporate into decryption function here
         wrong_letter = 0
         for line in range(0, len(self.encrypted)):  # TODO: Replace self.words with self.encrypted
             for letter in range(0, len(self.encrypted[line])):
@@ -503,18 +504,35 @@ class Cryptogram():
                     if self.encrypted[line][letter] == value[0]:
                         decrypted = ''.join((decrypted, value[1]))
                         flag = False
-                        # count = count + 1
                         break
                 if flag:
                     decrypted = ''.join((decrypted, self.encrypted[line][letter]))
-                    # incorrect_letters.append((word, letter))
                     if self.encrypted[line][letter].isalpha():
                         incorrect_letters.cypher[self.encrypted[line][letter]].append(wrong_letter)
                 wrong_letter = wrong_letter + 1    
 
 
+        # Determine the number of possible decryptions using combinations of unsolved letters
+        possibility_count = prod([len(val[1]) for val in unsolved_letters])
+        for count in range(0, possibility_count):
+            possible = list(deepcopy(decrypted))
+            possible_decryptions.append(possible)
+
+        # Determine how many decryptions each potential letter solution should be in
+        for unsolved_letter in unsolved_letters:
+            count = 0
+            interval = int(len(possible_decryptions)/len(unsolved_letter[1]))
+            for x in range(0, len(possible_decryptions), interval):
+                for decryption in possible_decryptions[x:x+interval]:
+                    for index in incorrect_letters.cypher[unsolved_letter[0]]:
+                        decryption[index] = unsolved_letter[1][count]
+                count = count + 1
+
+        print("Possible decryptions:")
         for decryption in possible_decryptions:
             print(''.join(decryption))
+#TODO: Account for partially solved separated words (self.words, not self.encrypted) and give user option to confirm based on word frequency
+
 if __name__ == '__main__':
     menu = Menu(
         "Crypto-Solver!", ((1, "Choose an encrypted file."), (2, "Decrypt cryptogram.")))
