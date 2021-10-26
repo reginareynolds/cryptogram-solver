@@ -261,6 +261,7 @@ class Cryptogram():
         self.cyphers = []
         self.final_cypher = Cypher()
         self.decrypted = None
+        self.dict_length = 0
 
     def parse(self):
         # Parse encrypted file
@@ -329,7 +330,7 @@ class Cryptogram():
 
         # Decrypt as much of message as possible
         self.decrypt()
-        # TODO: Determine how many times to rerun decypt function
+        # TODO: Determine how many times to rerun decrypt function
 
     # Update letter count for file
     def count(self, word):
@@ -339,6 +340,9 @@ class Cryptogram():
 
     # Remove any correctly decrypted letters from potential decryptions of other encrypted letters
     def simplify_decryption(self):
+        # Get dictionary length
+        self.dict_length = sum([len(val) for val in self.final_cypher.cypher.values()])
+
         solved = []
         rerun = []
 
@@ -394,6 +398,7 @@ class Cryptogram():
         if count != len(self.encrypted[0]):
             self.partially_solved()
             # self.find_key_words()
+            self.rerun_check()
 
     # Takes partially solved words and searches the dictionary for matching patterns that specifically have the solved letters in those spots
     def partially_solved(self):
@@ -430,6 +435,15 @@ class Cryptogram():
                     self.final_cypher = common_keys(cypher.cypher, self.final_cypher.cypher)
                     self.simplify_decryption()
 # TODO: Potentially remove all keys that are not solved, then search for dictionary matches with solved letters in correct spots and add corresponding new possibilities to unsolved letters
+    
+    # Determine if decryption should be rerun
+    def rerun_check(self):
+        # Dictionary length changed, decryption should be rerun
+        if sum([len(val) for val in self.final_cypher.cypher.values()]) < self.dict_length:
+            self.decrypt()
+        else:
+            self.letter_probability()
+
     # Identify potential key words and prefixes/suffixes
     def find_key_words(self):
         # Key three letter words: and, are, but, for, had, her, his, its, nor, she, the, was, yet
