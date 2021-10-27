@@ -495,7 +495,9 @@ class Cryptogram():
                 unsolved_letters.append((letter, self.final_cypher.cypher[letter]))
 
         # TODO: Potentially incorporate into decryption function here
-        wrong_letter = 0
+        wrong_index = 0
+        word_indices = []
+        partial_words = []
         for line in range(0, len(self.encrypted)):  # TODO: Replace self.words with self.encrypted
             for letter in range(0, len(self.encrypted[line])):
                 flag = True
@@ -508,8 +510,10 @@ class Cryptogram():
                 if flag:
                     decrypted = ''.join((decrypted, self.encrypted[line][letter]))
                     if self.encrypted[line][letter].isalpha():
-                        incorrect_letters.cypher[self.encrypted[line][letter]].append(wrong_letter)
-                wrong_letter = wrong_letter + 1    
+                        incorrect_letters.cypher[self.encrypted[line][letter]].append(wrong_index)
+                    if self.encrypted[line][letter].isspace():
+                        word_indices.append(wrong_index)
+                wrong_index = wrong_index + 1    
 
 
         # Determine the number of possible decryptions using combinations of unsolved letters
@@ -527,6 +531,15 @@ class Cryptogram():
                     for index in incorrect_letters.cypher[unsolved_letter[0]]:
                         decryption[index] = unsolved_letter[1][count]
                 count = count + 1
+
+        # Create list of possible word translations
+        for decryption in possible_decryptions:
+            # Find start and end of word containing unsolved letter index
+            for word_index in range(0, len(word_indices)):
+                if word_indices[word_index] < index and word_indices[word_index + 1] > index:
+                    partial_word = ''.join(decryption[word_indices[word_index]:word_indices[word_index + 1]]).strip()
+                    if partial_word not in partial_words:
+                        partial_words.append(partial_word)      
 
         print("Possible decryptions:")
         for decryption in possible_decryptions:
