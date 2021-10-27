@@ -1,5 +1,6 @@
 import sys
 import collections
+from wordfreq import word_frequency
 from tkinter import Button, Frame, Tk, messagebox
 from tkinter.filedialog import askopenfilename
 from patterns import get_word_pattern
@@ -496,9 +497,9 @@ class Cryptogram():
 
         # TODO: Potentially incorporate into decryption function here
         wrong_index = 0
-        word_indices = []
+        word_indices = []  # Track beginning and end indices of words
         partial_words = []
-        for line in range(0, len(self.encrypted)):  # TODO: Replace self.words with self.encrypted
+        for line in range(0, len(self.encrypted)):
             for letter in range(0, len(self.encrypted[line])):
                 flag = True
                 for value in solved:
@@ -509,12 +510,13 @@ class Cryptogram():
                         break
                 if flag:
                     decrypted = ''.join((decrypted, self.encrypted[line][letter]))
+                    # Record index of uncertain letters
                     if self.encrypted[line][letter].isalpha():
                         incorrect_letters.cypher[self.encrypted[line][letter]].append(wrong_index)
+                    # Record index of space between words
                     if self.encrypted[line][letter].isspace():
                         word_indices.append(wrong_index)
                 wrong_index = wrong_index + 1    
-
 
         # Determine the number of possible decryptions using combinations of unsolved letters
         possibility_count = prod([len(val[1]) for val in unsolved_letters])
@@ -532,6 +534,7 @@ class Cryptogram():
                         decryption[index] = unsolved_letter[1][count]
                 count = count + 1
 
+        # TODO: Account for multiple uncertain words
         # Create list of possible word translations
         for decryption in possible_decryptions:
             # Find start and end of word containing unsolved letter index
@@ -541,10 +544,19 @@ class Cryptogram():
                     if partial_word not in partial_words:
                         partial_words.append(partial_word)      
 
-        print("Possible decryptions:")
-        for decryption in possible_decryptions:
-            print(''.join(decryption))
-#TODO: Account for partially solved separated words (self.words, not self.encrypted) and give user option to confirm based on word frequency
+        # Check if there are any partial words
+        if len(partial_words):
+            print("Some encrypted letters could not be decrypted with certainty. The following words are possible decryptions.")
+            for word in partial_words:
+                print(word)
+            print("Here are the possible complete decryptions of the cryptogram.")
+            print("Possible decryptions:")
+            for decryption in possible_decryptions:
+                print(''.join(decryption))
+            for word in partial_words:
+                print("The word frequency of ", word, " in the English language is ", word_frequency(word, 'en'))
+            print("Which word would you like to keep?")
+#TODO: Give user option to confirm based on word frequency
 
 if __name__ == '__main__':
     menu = Menu(
