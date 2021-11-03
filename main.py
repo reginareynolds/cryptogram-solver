@@ -539,6 +539,7 @@ class Cryptogram():
         for decryption in possible_decryptions:
             # Find start and end of word containing unsolved letter index
             for word_index in range(0, len(word_indices)):
+                                        # TODO: If there are only two words, the below line breaks. Account for this.
                 if word_indices[word_index] < index and word_indices[word_index + 1] > index:
                     partial_word = ''.join(decryption[word_indices[word_index]:word_indices[word_index + 1]]).strip()
                     if partial_word not in partial_words:
