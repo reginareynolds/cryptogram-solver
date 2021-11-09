@@ -486,7 +486,6 @@ class Cryptogram():
         solved = []
         self.solved_letters(solved)
         decrypted = ''
-        possible_decryptions = []
         wrong_indices = []  # List of all wrong indices, regardless of encrypted letter
 
         incorrect_letters = Cypher()  # Access using [x], where x is the encrypted, unsolved letter. Returns indices containing x
@@ -520,11 +519,7 @@ class Cryptogram():
                         word_indices.append(wrong_index)
                 wrong_index = wrong_index + 1    
 
-        # Determine the number of possible decryptions using combinations of unsolved letters
-        possibility_count = prod([len(val[1]) for val in unsolved_letters])
-        for count in range(0, possibility_count):
-            possible = list(deepcopy(decrypted))
-            possible_decryptions.append(possible)
+        # Dynamically create possible decryptions using combinations of unsolved letters  
         total_possibilities = []
         unsolved_letter = unsolved_letters[0]
         for possibility in unsolved_letter[1]:
@@ -546,24 +541,6 @@ class Cryptogram():
             total_possibilities = possibilities
             x = x + 1
 
-        # Determine how many decryptions each potential letter solution should be in
-        for unsolved_letter in unsolved_letters:
-            count = 0
-            interval = int(len(possible_decryptions)/len(unsolved_letter[1]))
-            for x in range(0, len(possible_decryptions), interval):
-                for decryption in possible_decryptions[x:x+interval]:
-                    for index in incorrect_letters.cypher[unsolved_letter[0]]:
-                        decryption[index] = unsolved_letter[1][count]
-                count = count + 1
-
-        # TODO: Account for multiple uncertain words
-        # Create list of possible word translations
-        for decryption in possible_decryptions:
-            # Find start and end of word containing unsolved letter index
-            for word_index in range(0, len(word_indices)):
-                                        # TODO: If there are only two words, the below line breaks. Account for this.
-                if word_indices[word_index] < index and word_indices[word_index + 1] > index:
-                    partial_word = ''.join(decryption[word_indices[word_index]:word_indices[word_index + 1]]).strip()
         wrong_words = []
         # Find start and end of word containing unsolved letter index
         for word_index in range(0, len(word_indices)):
@@ -580,15 +557,12 @@ class Cryptogram():
                     wrong_words.append(((word_indices[word_index], word_indices[word_index + 1]), applicable))
 
         line_groups = []
-        # TODO: Account for multiple uncertain words
         # Create list of possible word translations
-        for decryption in possible_decryptions:
+        for decryption in total_possibilities:
             partial_words = []
             for word in wrong_words:
                 partial_word = ''.join(decryption[word[0][0]:word[0][1]]).strip()
                 if partial_word not in partial_words:
-                    partial_words.append(partial_word)
-                        partial_words.append(partial_word)      
                     partial_words.append(partial_word)
             line_groups.append(partial_words) 
 
@@ -596,22 +570,28 @@ class Cryptogram():
         for word in range(0, len(wrong_words)):
             holder = []
             for group in line_groups:
-                holder.append(group[word])
+                if group[word] not in holder:
+                    holder.append(group[word])
             word_groups.append(holder)
 
-        # Check if there are any partial words
-        if len(partial_words):
+# TODO: Remove any decryptions where uncertain letters are translated to the same letter
+        # Check if there are any partially decrypted words
+        if len(word_groups):
             print("Some encrypted letters could not be decrypted with certainty. The following words are possible decryptions.")
-            for word in partial_words:
-                print(word)
+            for group in word_groups:
+                to_print = ''
+                for word in group:
+                    to_print = ''.join((to_print, word, " "))
+                print(to_print)
             print("Here are the possible complete decryptions of the cryptogram.")
             print("Possible decryptions:")
-            for decryption in possible_decryptions:
+            for decryption in total_possibilities:
                 print(''.join(decryption))
-            for word in partial_words:
-                print("The word frequency of ", word, " in the English language is ", word_frequency(word, 'en'))
-            print("Which word would you like to keep?")
-#TODO: Give user option to confirm based on word frequency
+            for group in word_groups:
+                for word in group:
+                    print("The word frequency of ", word, " in the English language is ", word_frequency(word, 'en'))
+                print("Which word would you like to keep?")
+                #TODO: Give user option to confirm based on word frequency
 
 if __name__ == '__main__':
     menu = Menu(
