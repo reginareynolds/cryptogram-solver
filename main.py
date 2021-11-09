@@ -487,6 +487,7 @@ class Cryptogram():
         self.solved_letters(solved)
         decrypted = ''
         possible_decryptions = []
+        wrong_indices = []  # List of all wrong indices, regardless of encrypted letter
 
         incorrect_letters = Cypher()  # Access using [x], where x is the encrypted, unsolved letter. Returns indices containing x
 
@@ -513,6 +514,7 @@ class Cryptogram():
                     # Record index of uncertain letters
                     if self.encrypted[line][letter].isalpha():
                         incorrect_letters.cypher[self.encrypted[line][letter]].append(wrong_index)
+                        wrong_indices.append(wrong_index)
                     # Record index of space between words
                     if self.encrypted[line][letter].isspace():
                         word_indices.append(wrong_index)
@@ -523,6 +525,26 @@ class Cryptogram():
         for count in range(0, possibility_count):
             possible = list(deepcopy(decrypted))
             possible_decryptions.append(possible)
+        total_possibilities = []
+        unsolved_letter = unsolved_letters[0]
+        for possibility in unsolved_letter[1]:
+            possible = list(deepcopy(decrypted))
+            for index in incorrect_letters.cypher[unsolved_letter[0]]:
+                possible[index] = possibility
+            total_possibilities.append(possible)
+        
+        x = 1
+        while x < len(unsolved_letters):        
+            unsolved_letter = unsolved_letters[x]
+            possibilities = []
+            for possibility in unsolved_letter[1]:
+                for previous_letter in total_possibilities:
+                    possible = list(deepcopy(previous_letter))
+                    for index in incorrect_letters.cypher[unsolved_letter[0]]:
+                        possible[index] = possibility
+                    possibilities.append(possible)
+            total_possibilities = possibilities
+            x = x + 1
 
         # Determine how many decryptions each potential letter solution should be in
         for unsolved_letter in unsolved_letters:
@@ -542,8 +564,40 @@ class Cryptogram():
                                         # TODO: If there are only two words, the below line breaks. Account for this.
                 if word_indices[word_index] < index and word_indices[word_index + 1] > index:
                     partial_word = ''.join(decryption[word_indices[word_index]:word_indices[word_index + 1]]).strip()
-                    if partial_word not in partial_words:
+        wrong_words = []
+        # Find start and end of word containing unsolved letter index
+        for word_index in range(0, len(word_indices)):
+            applicable = []
+            
+            # Group incorrect indices by containing word
+            for index in wrong_indices:
+                if index > word_indices[word_index] and index < word_indices[word_index + 1]:
+                    applicable.append(index)
+                    
+            # Check if word contained incorrect indices
+            if len(applicable):
+                if applicable not in wrong_words:
+                    wrong_words.append(((word_indices[word_index], word_indices[word_index + 1]), applicable))
+
+        line_groups = []
+        # TODO: Account for multiple uncertain words
+        # Create list of possible word translations
+        for decryption in possible_decryptions:
+            partial_words = []
+            for word in wrong_words:
+                partial_word = ''.join(decryption[word[0][0]:word[0][1]]).strip()
+                if partial_word not in partial_words:
+                    partial_words.append(partial_word)
                         partial_words.append(partial_word)      
+                    partial_words.append(partial_word)
+            line_groups.append(partial_words) 
+
+        word_groups = []
+        for word in range(0, len(wrong_words)):
+            holder = []
+            for group in line_groups:
+                holder.append(group[word])
+            word_groups.append(holder)
 
         # Check if there are any partial words
         if len(partial_words):
