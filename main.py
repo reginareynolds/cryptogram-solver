@@ -482,6 +482,14 @@ class Cryptogram():
                         if len(self.final_cypher.cypher[second_letter]) != 1:
                             pass
     
+    def word_groups(self, wrong, words, lines):
+        for word in range(0, len(wrong)):
+            holder = []
+            for group in lines:
+                if group[word] not in holder:
+                    holder.append(group[word])
+            words.append(holder)
+
     def letter_probability(self):
         solved = []
         self.solved_letters(solved)
@@ -567,12 +575,7 @@ class Cryptogram():
             line_groups.append(partial_words) 
 
         word_groups = []  # List of possible decryptions for each uncertain word
-        for word in range(0, len(wrong_words)):
-            holder = []
-            for group in line_groups:
-                if group[word] not in holder:
-                    holder.append(group[word])
-            word_groups.append(holder)
+        self.word_groups(wrong_words, word_groups, line_groups)
 
 # TODO: Remove any decryptions where uncertain letters are translated to the same letter
         # Check if there are any partially decrypted words
@@ -590,41 +593,54 @@ class Cryptogram():
 
             # Give user option to confirm based on word frequency
             word_count = 0
+            compare = []
+            self.word_groups(wrong_words, compare, line_groups)
+            
             for group in word_groups:
-                for word in group:
-                    print("The word frequency of ", word, " in the English language is ", word_frequency(word, 'en'))
+                # User selection has removed possibilities from other uncertain words
+                if compare[word_count] != group:
+                    group = compare[word_count]  # Update uncertain word possibilities
+
+                # Word is still uncertain
+                if len(group) > 1:
+                    for word in group:
+                        print("The word frequency of ", word, " in the English language is ", word_frequency(word, 'en'))
                 
-                # Prompt for user input
-                prompt = True
-                while prompt:
-                    keep = input("Which word would you like to keep?")
-                    keep = keep.strip().upper()
+                    # Prompt for user input
+                    prompt = True
+                    while prompt:
+                        keep = input("Which word would you like to keep?")
+                        keep = keep.strip().upper()
 
-                    # User selected an invalid option
-                    if keep not in group:
-                        keep = input("That is not a valid selection. Please choose again.")
-                    # User made valid selection
-                    else:
-                        decryption_count = 0
-                        groups_remove = []
-                        decryptions_remove = []
-                        for line in line_groups:
-                            if line[word_count] != keep:
-                                groups_remove.append(line)
-                                decryptions_remove.append(total_possibilities[decryption_count])
-                            decryption_count = decryption_count + 1
+                        # User selected an invalid option
+                        if keep not in group:
+                            keep = input("That is not a valid selection. Please choose again.")
+                        # User made valid selection
+                        else:
+                            decryption_count = 0
+                            groups_remove = []
+                            decryptions_remove = []
+                            for line in line_groups:
+                                if line[word_count] != keep:
+                                    groups_remove.append(line)
+                                    decryptions_remove.append(total_possibilities[decryption_count])
+                                decryption_count = decryption_count + 1
                 
-                        for wrong in groups_remove:
-                            line_groups.remove(wrong)
+                            for wrong in groups_remove:
+                                line_groups.remove(wrong)
 
-                        for wrong in decryptions_remove:
-                            total_possibilities.remove(wrong)
+                            for wrong in decryptions_remove:
+                                total_possibilities.remove(wrong)
 
-                        prompt = False
+                            compare = []
+                            self.word_groups(wrong_words, compare, line_groups)
+
+                            prompt = False
 
                 word_count = word_count + 1
 
-                #TODO: Update line_groups and word_groups based on selected word
+            print("Based on your selections, the final decryption is:")
+            print(''.join(total_possibilities[0]))
 
 if __name__ == '__main__':
     menu = Menu(
