@@ -264,6 +264,8 @@ class Cryptogram():
         self.final_cypher = Cypher()
         self.decrypted = None
         self.dict_length = 0
+        self.wrong_indices = []  # List of all wrong indices, regardless of encrypted letter
+        self.word_indices = []  # Track beginning and end indices of words        
 
     def parse(self):
         # Parse encrypted file
@@ -369,25 +371,7 @@ class Cryptogram():
                 list.append([letter, self.final_cypher.cypher[letter][0]])
 
     def decrypt(self):
-        solved = []
-        self.solved_letters(solved)
-        self.decrypted = ''
-
-        count = 0  # Track how many letters were replaced
-        for line in range(0, len(self.encrypted)):
-            for letter in range(0, len(self.encrypted[line])):
-                flag = True
-                for value in solved:
-                    # If encrypted letter matches a solved letter, replace it with solution
-                    if self.encrypted[line][letter] == value[0]:
-                        self.decrypted = ''.join((self.decrypted, value[1]))
-                        flag = False
-                        count = count + 1
-                        break
-                if flag:
-                    self.decrypted = ''.join(
-                        (self.decrypted, self.encrypted[line][letter]))
-
+        count = self.replace()
         print("encrypted")
         print(self.encrypted)
         print("decrypted")
@@ -400,7 +384,42 @@ class Cryptogram():
         if count != len(self.encrypted[0]):
             self.partially_solved()
             # self.find_key_words()
+            self.word_frequency()
             self.rerun_check()
+
+    def replace(self, incorrect_letters = None):
+        solved = []
+        self.solved_letters(solved)
+        self.decrypted = ''
+        self.wrong_indices = []
+        self.word_indices = []
+
+        wrong_index = 0  # Track index of current letter
+        counter = 0  # Track how many letters were replaced
+        for line in range(0, len(self.encrypted)):
+            for letter in range(0, len(self.encrypted[line])):
+                flag = True
+                for value in solved:
+                    # If encrypted letter matches a solved letter, replace it with solution
+                    if self.encrypted[line][letter] == value[0]:
+                        self.decrypted = ''.join((self.decrypted, value[1]))
+                        flag = False
+                        counter = counter + 1
+                        break
+                if flag:
+                    self.decrypted = ''.join(
+                        (self.decrypted, self.encrypted[line][letter]))
+                    if incorrect_letters:
+                        # Record index of uncertain letters
+                        if self.encrypted[line][letter].isalpha():
+                            incorrect_letters.cypher[self.encrypted[line][letter]].append(wrong_index)
+                            self.wrong_indices.append(wrong_index)
+                        # Record index of space between words
+                        if self.encrypted[line][letter].isspace():
+                            self.word_indices.append(wrong_index)
+                wrong_index = wrong_index + 1    
+
+        return(counter)
 
     # Takes partially solved words and searches the dictionary for matching patterns that specifically have the solved letters in those spots
     def partially_solved(self):
@@ -445,7 +464,7 @@ class Cryptogram():
         if sum([len(val) for val in self.final_cypher.cypher.values()]) < self.dict_length:
             self.decrypt()
         else:
-            self.letter_probability()
+            self.word_frequency()
 
     # Identify potential key words and prefixes/suffixes
     def find_key_words(self):
@@ -490,48 +509,21 @@ class Cryptogram():
                     holder.append(group[word])
             words.append(holder)
 
-    def letter_probability(self):
-        solved = []
-        self.solved_letters(solved)
-        decrypted = ''
-        wrong_indices = []  # List of all wrong indices, regardless of encrypted letter
-
-        incorrect_letters = Cypher()  # Access using [x], where x is the encrypted, unsolved letter. Returns indices containing x
-
+    # TODO: Finalize final cypher using user selected words. Show final decryption in place of decrypt button. Escape decryption loop
+    def word_frequency(self):
         unsolved_letters = []  # List of unsolved letters and their possible decryptions
         for letter in self.final_cypher.cypher:
             if len(self.final_cypher.cypher[letter]) > 1:  # TODO: Should this be greater than 1 or != 1?
                 unsolved_letters.append((letter, self.final_cypher.cypher[letter]))
 
-        # TODO: Potentially incorporate into decryption function here
-        wrong_index = 0
-        word_indices = []  # Track beginning and end indices of words
-        partial_words = []
-        for line in range(0, len(self.encrypted)):
-            for letter in range(0, len(self.encrypted[line])):
-                flag = True
-                for value in solved:
-                    # If encrypted letter matches a solved letter, replace it with solution
-                    if self.encrypted[line][letter] == value[0]:
-                        decrypted = ''.join((decrypted, value[1]))
-                        flag = False
-                        break
-                if flag:
-                    decrypted = ''.join((decrypted, self.encrypted[line][letter]))
-                    # Record index of uncertain letters
-                    if self.encrypted[line][letter].isalpha():
-                        incorrect_letters.cypher[self.encrypted[line][letter]].append(wrong_index)
-                        wrong_indices.append(wrong_index)
-                    # Record index of space between words
-                    if self.encrypted[line][letter].isspace():
-                        word_indices.append(wrong_index)
-                wrong_index = wrong_index + 1    
+        incorrect_letters = Cypher()  # Access using [x], where x is the encrypted, unsolved letter. Returns indices containing x
+        self.replace(incorrect_letters)
 
         # Dynamically create possible decryptions using combinations of unsolved letters  
         total_possibilities = []
         unsolved_letter = unsolved_letters[0]
         for possibility in unsolved_letter[1]:
-            possible = list(deepcopy(decrypted))
+            possible = list(deepcopy(self.decrypted))
             for index in incorrect_letters.cypher[unsolved_letter[0]]:
                 possible[index] = possibility
             total_possibilities.append(possible)
@@ -551,18 +543,18 @@ class Cryptogram():
 
         wrong_words = []  # In form of ((a, b), [c...]), where a and b are the start and end indices of the word and c... are the uncertain letters within the word
         # Find start and end of word containing unsolved letter index
-        for word_index in range(0, len(word_indices)):
+        for word_index in range(0, len(self.word_indices)):
             applicable = []
             
             # Group incorrect indices by containing word
-            for index in wrong_indices:
-                if index > word_indices[word_index] and index < word_indices[word_index + 1]:
+            for index in self.wrong_indices:
+                if index > self.word_indices[word_index] and index < self.word_indices[word_index + 1]:
                     applicable.append(index)
                     
             # Check if word contained incorrect indices
             if len(applicable):
                 if applicable not in wrong_words:
-                    wrong_words.append(((word_indices[word_index], word_indices[word_index + 1]), applicable))
+                    wrong_words.append(((self.word_indices[word_index], self.word_indices[word_index + 1]), applicable))
 
         line_groups = []  # List of uncertain words in each possible decryption
         # Create list of possible word translations
