@@ -36,3 +36,4 @@ if __name__ == '__main__':
     with open('cryptogram-solver/word_patterns.py', 'w') as file:
         file.write('dictionary_patterns = ')
         file.write(pprint.pformat(dictionary_patterns))
+# TODO: Account for words with more than 10 unique letters. The current pattern recognition depends on a single character to identify the letter, so anything beyond 9 will be interpreted as two letters (10 will appear to be 1 and 0, 11 will appear to be 1 and 1, etc.)
