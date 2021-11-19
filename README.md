@@ -5,38 +5,38 @@ A program to intelligently decrypt cryptogram puzzles.
 A cryptogram is a type of word puzzle. In it, a piece of text is encrypted with a substitution cypher. This works by replacing every letter with a different letter. To solve the puzzle, the user needs to undo the substitutions to return the text to its original state. Below is an example.
 
 #### Original text:
-THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.
+THE FIRST METHOD FOR ESTIMATING THE INTELLIGENCE OF A RULER IS TO LOOK AT THE MEN HE HAS AROUND HIM.
 #### Encrypted text:
-ZYI JHCST MANDB VNR QHELW NXIA ZYI KFUO GNP.
+YPX EBULY WXYPHC EHU XLYBWJYBDS YPX BDYXKKBSXDNX HE J UOKXU BL YH KHHZ JY YPX WXD PX PJL JUHODC PBW.
 ### Encryption substitution cypher:
 |**Original letter**|**Encrypted letter**|
 |:---:|:---:|
-| A | F |
-| B | M |
-| C | S |
-| D | G |
-| E | I |
-| F | V |
-| G | P |
-| H | Y |
-| I | C |
-| J | Q |
-| K | T |
+| A | J |
+| B |  |
+| C | N |
+| D | C |
+| E | X |
+| F | E |
+| G | S |
+| H | P |
+| I | B |
+| J |  |
+| K | Z |
 | L | K |
-| M | E |
-| N | B |
-| O | N |
-| P | L |
-| Q | J |
-| R | A |
-| S | W |
-| T | Z |
-| U | H |
-| V | X |
-| W | D |
-| X | R |
-| Y | O |
-| Z | U |
+| M | W |
+| N | D |
+| O | H |
+| P |  |
+| Q |  |
+| R | U |
+| S | L |
+| T | Y |
+| U | O |
+| V |  |
+| W |  |
+| X |  |
+| Y |  |
+| Z |  |
 
 To decrypt the cryptogram, the user would need to construct the inverted substitution cypher.
 
@@ -44,35 +44,35 @@ To decrypt the cryptogram, the user would need to construct the inverted substit
 
 |**Encrypted letter**|**Original letter**|
 |:---:|:---:|
-| A | R |
-| B | N |
-| C | I |
-| D | W |
-| E | M |
-| F | A |
-| G | D |
-| H | U |
-| I | E |
-| J | Q |
+| A |  |
+| B | I |
+| C | D |
+| D | N |
+| E | F |
+| F |  |
+| G |  |
+| H | O |
+| I |  |
+| J | A |
 | K | L |
-| L | P |
-| M | B |
-| N | O |
-| O | Y |
-| P | G |
-| Q | J |
-| R | X |
-| S | C |
-| T | K |
-| U | Z |
-| V | F |
-| W | S |
-| X | V |
-| Y | H |
-| Z | T |
+| L | S |
+| M |  |
+| N | C |
+| O | U |
+| P | H |
+| Q |  |
+| R |  |
+| S | G |
+| T |  |
+| U | R |
+| V |  |
+| W | M |
+| X | E |
+| Y | T |
+| Z | K |
 
 ## How this program works
-This program works by taking an encrypted input, identifying the [relative patterns](#word-patterns) of the encrypted words, and comparing those relative patterns to a [list of known matches](word_patterns.py). The known matches are then cross-referenced with each other, and matches that contradict one another are removed from the pool of potential candidates. This process is repeated until no more matches can be removed.
+This program works by taking an encrypted input, identifying the [relative patterns](#word-patterns) of the encrypted words, and comparing those relative patterns to a [list of known matches](word_patterns.py). The known matches are then [cross-referenced with each other](#comparing-word-patterns), and matches that contradict one another are removed from the pool of potential candidates. This process is repeated until no more matches can be removed.
 
 If the cryptogram is still not solved at that point, the user is presented with the different possible decryptions and the likelihood of their correctness based on the frequency of each potential word in the English language. The user can then make a final decision on the correct decryption.
 
@@ -83,15 +83,7 @@ Because the text sequence is maintained, the relative pattern of the letters in 
 
 Consider the [example sentence](#original-text) and its [encryption](#encrypted-text).
 
-This example consists of 43 total alphabetic characters and 9 total words. Of those 43 alphabetic characters, there are 26 unique characters. Of the 9 total words, there are 8 unique words. These numbers are true for both the original and the encrypted text.
-
-The words can be further categorized by length.
-
-|**Three letter words**|**Four letter words**|**Five letter words**|
-|:---:|:---:|:---:|
-| THE | OVER | QUICK |
-| FOX | LAZY | BROWN |
-| DOG |  | JUMPS |
+This example consists of 80 total alphabetic characters and 20 total words. Of those 80 alphabetic characters, there are 17 unique characters. Of the 20 total words, there are 18 unique words. These numbers are true for both the original and the encrypted text.
 
 ### Word patterns
 For simplicity's sake, each encrypted and decrypted word can be thought of as a pattern. For a given word, each letter can be replaced with a corresponding numeral. That numeral replaces every instance of the corresponding letter within the word. 
@@ -110,19 +102,82 @@ For example, here are some words and their word patterns.
 
 |**Original word**|**Encrypted word**|**Word pattern**|
 |:---:|:---:|:---:|
-| THE | ZYI | 012 |
-| QUICK | JHCST | 01234 |  
-| BROWN | MANDB | 01234 |  
-| FOX | VNR | 012 |  
-| JUMPS | QHELW | 01234 |  
-| OVER | NXIA | 0123 |  
-| THE | ZYI | 012 |  
-| LAZY | KFUO | 0123 |  
-| DOG | GNP | 012 |
+| THE | YPX | 012 |
+| FIRST | EBULY | 01234 |  
+| METHOD | WXYPHC | 012345 |  
+| FOR | EHU | 012 |  
+| ESTIMATING | XLYBWJYBDS | 0123452367 |  
+| THE | YPX | 012 |  
+| INTELLIGENCE | BDYXKKBSXDNX | 012344053163 |  
+| OF | HE | 01 |  
+| A | J | 0 |
+| RULER | UOKXU | 01230 |
+| IS | BL | 01 |
+| TO | YH | 01 |
+| LOOK | KHHZ | 0112 |
+| AT | JY | 01 |
+| THE | YPX | 012 |
+| MEN | WXD | 012 |
+| HE | PX | 01 |
+| HAS | PJL | 012 |
+| AROUND | JUHODC | 012345 |
+| HIM | PBW | 012 |
 
 Notice that the word pattern remains identical for both the original text and the encrypted text. As explained above, the substitution cypher maintains the relative pattern of the letters in the text, which allows the word pattern to stay the same.
 
-### File structure
+### Comparing word patterns
+In order to decrypt the message, this program relies on identifying potential words corresponding to each word pattern, then comparing a given encrypted word's potential letter solutions to other encrypted words' potential letter solutions. The potential letter solution of an encrypted letter must be the same across encrypted words.
+
+This means that the more times an encrypted letter appears in the text, the more comparisons that can be made, and the greater the chance is to determine that encrypted letter's decryption. Longer encrypted texts are therefore easier to decrypt.
+
+The ```parse(self)``` function of the ```Cryptogram``` class in [main.py](main.py) interprets the encrypted text and creates a dictionary of the different word patterns found within it, as shown in the lines below.
+
+```
+# Parse encrypted file
+with open(self.file) as contents:
+    self.encrypted = contents.readlines()
+
+# Strip whitespaces and standardize letters to same case
+for line in range(0, len(self.encrypted)):
+    self.encrypted[line] = self.encrypted[line].strip().upper()
+
+    # Split into words
+    words = self.encrypted[line].split(' ')
+
+    # Check words for alphabetic characters
+    alphabetic = ''
+    alphabetic_line = []
+    for word in words:
+        for letter in word:
+            if letter.isalpha():
+                alphabetic = ''.join((alphabetic, letter))
+        alphabetic_line.append(alphabetic)
+        alphabetic = ''
+    self.words.append(alphabetic_line)
+
+# Determine word patterns for words in encrypted text
+for line in self.words:
+    for word in line:
+        pattern = get_word_pattern(word)
+
+        # Check for word pattern in pattern list
+        if pattern in self.word_patterns:
+            # Add encrypted English word to matching pattern key
+            self.word_patterns[pattern].append(word)
+        else:
+            # Create new pattern key and initialize value list with encrypted English word
+            self.word_patterns[pattern] = [word]
+```
+
+The resultant dictionary looks like this:
+```
+{'012': ['YPX', 'EHU', 'YPX', 'YPX', 'WXD', 'PJL', 'PBW'], '01234': ['EBULY'], '012345': ['WXYPHC', 'JUHODC'], '0123452367': ['XLYBWJYBDS'], '012344053163': ['BDYXKKBSXDNX'], '01': ['HE', 'BL', 'YH', 'JY', 'PX'], '0': ['J'], '01230': ['UOKXU'], '0112': ['KHHZ']}
+```
+
+The next step is to compare the word patterns in the encrypted text to matching word patterns in the English language, then record potential letter solutions for each encrypted letter in a Python dictionary. This is done using the ```Cypher``` class of [main.py](main.py).
+
+
+## File structure
 The repository consists of the following files:
 * [.gitignore](.gitignore)
 * [LICENSE](LICENSE)
