@@ -174,7 +174,31 @@ The resultant dictionary looks like this:
 {'012': ['YPX', 'EHU', 'YPX', 'YPX', 'WXD', 'PJL', 'PBW'], '01234': ['EBULY'], '012345': ['WXYPHC', 'JUHODC'], '0123452367': ['XLYBWJYBDS'], '012344053163': ['BDYXKKBSXDNX'], '01': ['HE', 'BL', 'YH', 'JY', 'PX'], '0': ['J'], '01230': ['UOKXU'], '0112': ['KHHZ']}
 ```
 
-The next step is to compare the word patterns in the encrypted text to matching word patterns in the English language, then record potential letter solutions for each encrypted letter in a Python dictionary. This is done using the ```Cypher``` class of [main.py](main.py).
+The next step is to compare the word patterns in the encrypted text to matching word patterns in the English language, then record potential letter solutions for each encrypted letter in a Python dictionary. This is done using the ```Cypher``` class of [main.py](main.py). These ```Cyphers``` are then compared against each other using the ```common_keys()``` function, which finds the potential letter solutions that the cyphers have in common.
+
+```
+for pattern in self.word_patterns:
+    # Map all potential decrypted values to corresponding encrypted values
+    for encrypted_match in self.word_patterns[pattern]:
+        cypher = Cypher()  # Create new cypher
+        cypher.add_cypher_keys(len(pattern), encrypted_match, dictionary_patterns[pattern])
+        self.cyphers.append(cypher)
+
+# Find common potential decrypted values in cyphers
+for count in range (0, len(self.cyphers)):
+    self.final_cypher = common_keys(self.cyphers[count].cypher, self.final_cypher.cypher)
+
+```
+The resultant ```Cypher.cypher``` looks like this:
+```
+{'A':[], 'B':['I'], 'C':['T', 'S', 'E', 'D', 'G', 'Y', 'N', 'H', 'B', 'O', 'I', 'R', 'W', 'C', 'M', 'L', 'K', 'P', 'F', 'X', 'A', 'Z', 'U', 'V'], 'D':['N'], 'E':['B', 'D', 'G', 'H', 'I', 'M', 'N', 'S', 'T', 'W', 'Y', 'A', 'E', 'O', 'L', 'R', 'F', 'U', 'K', 'P', 'Z'], 'F':[], 'G':[], 'H':['B', 'D', 'L', 'M', 'N', 'E', 'O', 'G', 'R', 'A', 'F'], 'I':[], 'J':['A'], 'K':['L'], 'L':['H', 'I', 'S', 'A', 'O', 'U'], 'M':[], 'N':['C'], 'O':['L', 'M', 'N', 'O', 'R', 'U', 'Y', 'A', 'I', 'C', 'V', 'X', 'E', 'H', 'K', 'P', 'T', 'W'], 'P':['A', 'B', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S', 'T', 'U', 'W', 'Y'], 'Q':[], 'R':[], 'S':['G'], 'T':[], 'U':['A', 'B', 'C', 'D', 'E', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S', 'T', 'W', 'X'], 'V':[], 'W':['W', 'M', 'V', 'R', 'L', 'O', 'S'], 'X':['E'], 'Y':['T'], 'Z':['E', 'Y', 'S', 'O', 'F', 'N', 'P', 'R', 'T', 'K', 'M', 'L', 'A', 'D', 'G']}
+```
+
+Since each encrypted letter corresponds to exactly one decrypted letter, once an encrypted letter is solved, the solution can be removed as a possible solution for all other encrypted letters. The ```simplify_decryption()``` function takes care of this. In the event that removing a potential solution leaves an encrypted letter with only one possible solution, the function runs itself again. This simplifies the final ```Cypher.cypher``` to the following:
+
+```
+{'A':[], 'B':['I'], 'C':['S', 'D', 'Y', 'H', 'B', 'O', 'R', 'W', 'M', 'K', 'P', 'F', 'X', 'Z', 'U', 'V'], 'D':['N'], 'E':['B', 'D', 'H', 'M', 'S', 'W', 'Y', 'O', 'R', 'F', 'U', 'K', 'P', 'Z'], 'F':[], 'G':[], 'H':['B', 'D', 'M', 'O', 'R', 'F'], 'I':[], 'J':['A'], 'K':['L'], 'L':['H', 'S', 'O', 'U'], 'M':[], 'N':['C'], 'O':['M', 'O', 'R', 'U', 'Y', 'V', 'X', 'H', 'K', 'P', 'W'], 'P':['B', 'D', 'F', 'H', 'K', 'M', 'O', 'P', 'R', 'S', 'U', 'W', 'Y'], 'Q':[], 'R':[], 'S':['G'], 'T':[], 'U':['B', 'D', 'H', 'K', 'M', 'O', 'P', 'R', 'S', 'W', 'X'], 'V':[], 'W':['W', 'M', 'V', 'R', 'O', 'S'], 'X':['E'], 'Y':['T'], 'Z':['Y', 'S', 'O', 'F', 'P', 'R', 'K', 'M', 'D']}
+```
 
 
 ## File structure
