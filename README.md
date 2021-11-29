@@ -200,6 +200,68 @@ Since each encrypted letter corresponds to exactly one decrypted letter, once an
 {'A':[], 'B':['I'], 'C':['S', 'D', 'Y', 'H', 'B', 'O', 'R', 'W', 'M', 'K', 'P', 'F', 'X', 'Z', 'U', 'V'], 'D':['N'], 'E':['B', 'D', 'H', 'M', 'S', 'W', 'Y', 'O', 'R', 'F', 'U', 'K', 'P', 'Z'], 'F':[], 'G':[], 'H':['B', 'D', 'M', 'O', 'R', 'F'], 'I':[], 'J':['A'], 'K':['L'], 'L':['H', 'S', 'O', 'U'], 'M':[], 'N':['C'], 'O':['M', 'O', 'R', 'U', 'Y', 'V', 'X', 'H', 'K', 'P', 'W'], 'P':['B', 'D', 'F', 'H', 'K', 'M', 'O', 'P', 'R', 'S', 'U', 'W', 'Y'], 'Q':[], 'R':[], 'S':['G'], 'T':[], 'U':['B', 'D', 'H', 'K', 'M', 'O', 'P', 'R', 'S', 'W', 'X'], 'V':[], 'W':['W', 'M', 'V', 'R', 'O', 'S'], 'X':['E'], 'Y':['T'], 'Z':['Y', 'S', 'O', 'F', 'P', 'R', 'K', 'M', 'D']}
 ```
 
+### Decryption
+
+Now that the ```Cypher``` has been simplifed, we can attempt to decrypt the message. The ```decrypt(self)``` function first calls the ```replace(self)``` function, which assembles a partially/fully decrypted version of the encrypted message by comparing each letter in the encrypted message to the list of letters with known solutions and replacing them when possible, otherwise leaving them encrypted. The ```replace(self)``` function also keeps track of how many letters were replaced and returns this value. Below are the relevant lines of code from the ```replace(self)``` function.
+
+```
+def replace(self):
+    solved = []
+    self.solved_letters(solved)
+    self.decrypted = ''
+
+    counter = 0  # Track how many letters were replaced
+    for line in range(0, len(self.encrypted)):
+        for letter in range(0, len(self.encrypted[line])):
+            flag = True
+            for value in solved:
+                # If encrypted letter matches a solved letter, replace it with solution
+                if self.encrypted[line][letter] == value[0]:
+                    self.decrypted = ''.join((self.decrypted, value[1]))
+                    flag = False
+                    counter = counter + 1
+                    break
+            if flag:
+                self.decrypted = ''.join(
+                    (self.decrypted, self.encrypted[line][letter]))
+
+    return(counter)
+```
+
+The ```decrypt(self)``` function prints the encrypted message and decrypted message, then determines how many alphabetic characters the message contains, if that is not already known.
+
+```
+def decrypt(self):
+    count = self.replace()
+    print("encrypted")
+    print(self.encrypted)
+    print("decrypted")
+    print(self.decrypted)
+
+    # Already determined message length
+    if self.message_length:
+        pass
+    # Determine alphabetic message length
+    else:
+        self.message_length = 0
+        for letter in self.encrypted[0]:
+            if letter.isalpha():
+                self.message_length = self.message_length + 1
+```
+
+This leads to three possible scenarios:
+1. The decrypted message is identical to the encrypted message. This means no letters were able to be replaced.
+2. The decrypted message is not identical to the encrypted message, but the number of letters replaced is not equal to the total number of letters. This means only some letters were able to be replaced.
+3. The decrypted message is not identical to the encrypted message, and the number of letters replaced is equal to the total number of letters. This means all the letters were able to be replaced.
+
+In case 3, the message is decrypted, and nothing else needs to be done. In cases 1 and 2, further analysis is required. To determine the case, the ```decrypt(self)``` function compares ```count```, the number of letters that were replaced, with ```self.message_length```, the total number of alphabetic characters in the message, then proceeds accordingly.
+
+```
+if count != self.message_length:
+    self.partially_solved()
+    self.word_frequency()
+    self.rerun_check()
+```
 
 ## File structure
 The repository consists of the following files:

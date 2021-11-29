@@ -264,6 +264,7 @@ class Cryptogram():
         self.final_cypher = Cypher()
         self.decrypted = None
         self.dict_length = 0
+        self.message_length = None
         self.wrong_indices = []  # List of all wrong indices, regardless of encrypted letter
         self.word_indices = []  # Track beginning and end indices of words        
 
@@ -377,17 +378,21 @@ class Cryptogram():
         print("decrypted")
         print(self.decrypted)
 
-        # Determine alphabetic message length 
-        length = 0
-        for letter in self.encrypted[0]:
-            if letter.isalpha():
-                length = length + 1
+        # Already determined message length
+        if self.message_length:
+            pass
+        # Determine alphabetic message length
+        else:
+            self.message_length = 0
+            for letter in self.encrypted[0]:
+                if letter.isalpha():
+                    self.message_length = self.message_length + 1
 
         # THREE CASES:
         # Case one: self.decrypted is identical to self.encrypted[0], meaning no letters were able to be replaced
-        # Case two: self.decrypted is not identical to self.encrypted[0], but count is not equal to length, meaning not all letters were replaced
-        # Case three: self. decrypted is not identical to self.encrypted[0], and count is equal to length, meaning all letters were replaced
-        if count != length:
+        # Case two: self.decrypted is not identical to self.encrypted[0], but count is not equal to self.message_length, meaning not all letters were replaced
+        # Case three: self. decrypted is not identical to self.encrypted[0], and count is equal to self.message_length, meaning all letters were replaced
+        if count != self.message_length:
             self.partially_solved()
             # self.find_key_words()
             self.word_frequency()
