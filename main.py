@@ -377,11 +377,17 @@ class Cryptogram():
         print("decrypted")
         print(self.decrypted)
 
+        # Determine alphabetic message length 
+        length = 0
+        for letter in self.encrypted[0]:
+            if letter.isalpha():
+                length = length + 1
+
         # THREE CASES:
         # Case one: self.decrypted is identical to self.encrypted[0], meaning no letters were able to be replaced
-        # Case two: self.decrypted is not identical to self.encrypted[0], but count is not equal to len(self.encrypted[0]), meaning not all letters were replaced
-        # Case three: self. decrypted is not identical to self.encrypted[0], and count is equal to len(self.encrypted[0]), meaning all letters were replaced
-        if count != len(self.encrypted[0]):
+        # Case two: self.decrypted is not identical to self.encrypted[0], but count is not equal to length, meaning not all letters were replaced
+        # Case three: self. decrypted is not identical to self.encrypted[0], and count is equal to length, meaning all letters were replaced
+        if count != length:
             self.partially_solved()
             # self.find_key_words()
             self.word_frequency()
