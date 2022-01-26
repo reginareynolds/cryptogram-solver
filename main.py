@@ -277,23 +277,21 @@ class Cryptogram():
         for line in range(0, len(self.encrypted)):
             self.encrypted[line] = self.encrypted[line].strip().upper()
 
-            # Split into words
-            words = self.encrypted[line].split(' ')
-
-            # Check words for alphabetic characters
-            alphabetic = ''
-            alphabetic_line = []
-            for word in words:
-                for letter in word:
-                    if letter.isalpha():
-                        alphabetic = ''.join((alphabetic, letter))
-                alphabetic_line.append(alphabetic)
-                alphabetic = ''
-            self.words.append(alphabetic_line)
-            self.count(self.encrypted[line])
-
         # Join all encrypted lines
         self.encrypted = ''.join(line for line in self.encrypted)
+
+        # Split into words
+        words = self.encrypted.split(' ')
+
+        # Check words for alphabetic characters
+        alphabetic = ''
+        for word in words:
+            for letter in word:
+                if letter.isalpha():
+                    alphabetic = ''.join((alphabetic, letter))
+            self.words.append(alphabetic)
+            alphabetic = ''
+        self.count(self.encrypted[line])
 
         # Count the total number of alphabetic characters
         total = 0
@@ -309,17 +307,16 @@ class Cryptogram():
                         pair[1] = self.letter_count[letter]/total
 
         # Determine word patterns for words in encrypted text
-        for line in self.words:
-            for word in line:
-                pattern = get_word_pattern(word)
+        for word in self.words:
+            pattern = get_word_pattern(word)
 
-                # Check for word pattern in pattern list
-                if pattern in self.word_patterns:
-                    # Add encrypted English word to matching pattern key
-                    self.word_patterns[pattern].append(word)
-                else:
-                    # Create new pattern key and initialize value list with encrypted English word
-                    self.word_patterns[pattern] = [word]
+            # Check for word pattern in pattern list
+            if pattern in self.word_patterns:
+                # Add encrypted English word to matching pattern key
+                self.word_patterns[pattern].append(word)
+            else:
+                # Create new pattern key and initialize value list with encrypted English word
+                self.word_patterns[pattern] = [word]
 
         # Compare word patterns in encrypted text to word patterns in English dictionary
         for pattern in self.word_patterns:
@@ -392,9 +389,9 @@ class Cryptogram():
                     self.message_length = self.message_length + 1
 
         # THREE CASES:
-        # Case one: self.decrypted is identical to self.encrypted[0], meaning no letters were able to be replaced
-        # Case two: self.decrypted is not identical to self.encrypted[0], but count is not equal to self.message_length, meaning not all letters were replaced
-        # Case three: self. decrypted is not identical to self.encrypted[0], and count is equal to self.message_length, meaning all letters were replaced
+        # Case one: self.decrypted is identical to self.encrypted, meaning no letters were able to be replaced
+        # Case two: self.decrypted is not identical to self.encrypted, but count is not equal to self.message_length, meaning not all letters were replaced
+        # Case three: self. decrypted is not identical to self.encrypted, and count is equal to self.message_length, meaning all letters were replaced
         if count != self.message_length:
             self.partially_solved()
             # self.find_key_words()
@@ -436,39 +433,38 @@ class Cryptogram():
 
     # Takes partially solved words and searches the dictionary for matching patterns that specifically have the solved letters in those spots
     def partially_solved(self):
-        for line in range(0, len(self.words)):
-            for word in self.words[line]:
-                index = 0
-                correct_indices = []  # Holds solved letters and their position in the word
-                for letter in word:
-                    # Solved letter
-                    # TODO: Incorporate solved_letters function
-                    if len(self.final_cypher.cypher[letter]) == 1:
-                        correct_indices.append((index, self.final_cypher.cypher[letter]))
-                    index = index + 1
+        for word in self.words:
+            index = 0
+            correct_indices = []  # Holds solved letters and their position in the word
+            for letter in word:
+                # Solved letter
+                # TODO: Incorporate solved_letters function
+                if len(self.final_cypher.cypher[letter]) == 1:
+                    correct_indices.append((index, self.final_cypher.cypher[letter]))
+                index = index + 1
 
-                # Only partially solved word
-                if len(correct_indices) != len(word):
-                    pattern = get_word_pattern(word)
-                    wrong_matches = []
-                    dictionary_matches = deepcopy(dictionary_patterns[pattern])
+            # Only partially solved word
+            if len(correct_indices) != len(word):
+                pattern = get_word_pattern(word)
+                wrong_matches = []
+                dictionary_matches = deepcopy(dictionary_patterns[pattern])
 
-                    # Find matching dictionary patterns
-                    for dictionary_match in dictionary_matches:
-                        for correct_index in correct_indices:
-                            if dictionary_match[correct_index[0]] != correct_index[1][0]:
-                                wrong_matches.append(dictionary_match)
-                                break
+                # Find matching dictionary patterns
+                for dictionary_match in dictionary_matches:
+                    for correct_index in correct_indices:
+                        if dictionary_match[correct_index[0]] != correct_index[1][0]:
+                            wrong_matches.append(dictionary_match)
+                            break
 
-                    # Remove any dictionary matches that don't have the solved letters in the correct spots
-                    for match in wrong_matches:
-                        dictionary_matches.remove(match)
+                # Remove any dictionary matches that don't have the solved letters in the correct spots
+                for match in wrong_matches:
+                    dictionary_matches.remove(match)
 
-                    print(self.final_cypher.cypher)
-                    cypher = Cypher()  # Create new cypher
-                    cypher.add_cypher_keys(len(word), word, dictionary_matches)
-                    self.final_cypher = common_keys(cypher.cypher, self.final_cypher.cypher)
-                    self.simplify_decryption()
+                print(self.final_cypher.cypher)
+                cypher = Cypher()  # Create new cypher
+                cypher.add_cypher_keys(len(word), word, dictionary_matches)
+                self.final_cypher = common_keys(cypher.cypher, self.final_cypher.cypher)
+                self.simplify_decryption()
 # TODO: Potentially remove all keys that are not solved, then search for dictionary matches with solved letters in correct spots and add corresponding new possibilities to unsolved letters
     
     # Determine if decryption should be rerun
