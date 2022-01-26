@@ -410,28 +410,27 @@ class Cryptogram():
 
         wrong_index = 0  # Track index of current letter
         counter = 0  # Track how many letters were replaced
-        for line in range(0, len(self.encrypted)):
-            for letter in range(0, len(self.encrypted[line])):
-                flag = True
-                for value in solved:
-                    # If encrypted letter matches a solved letter, replace it with solution
-                    if self.encrypted[line][letter] == value[0]:
-                        self.decrypted = ''.join((self.decrypted, value[1]))
-                        flag = False
-                        counter = counter + 1
-                        break
-                if flag:
-                    self.decrypted = ''.join(
-                        (self.decrypted, self.encrypted[line][letter]))
-                    if incorrect_letters:
-                        # Record index of uncertain letters
-                        if self.encrypted[line][letter].isalpha():
-                            incorrect_letters.cypher[self.encrypted[line][letter]].append(wrong_index)
-                            self.wrong_indices.append(wrong_index)
-                        # Record index of space between words
-                        if self.encrypted[line][letter].isspace():
-                            self.word_indices.append(wrong_index)
-                wrong_index = wrong_index + 1    
+        for letter in range(0, len(self.encrypted)):
+            flag = True
+            for value in solved:
+                # If encrypted letter matches a solved letter, replace it with solution
+                if self.encrypted[letter] == value[0]:
+                    self.decrypted = ''.join((self.decrypted, value[1]))
+                    flag = False
+                    counter = counter + 1
+                    break
+            if flag:
+                self.decrypted = ''.join(
+                    (self.decrypted, self.encrypted[letter]))
+                if incorrect_letters:
+                    # Record index of uncertain letters
+                    if self.encrypted[letter].isalpha():
+                        incorrect_letters.cypher[self.encrypted[letter]].append(wrong_index)
+                        self.wrong_indices.append(wrong_index)
+                    # Record index of space between words
+                    if self.encrypted[letter].isspace():
+                        self.word_indices.append(wrong_index)
+            wrong_index = wrong_index + 1
 
         return(counter)
 
@@ -647,6 +646,11 @@ class Cryptogram():
 
             print("Based on your selections, the final decryption is:")
             print(''.join(total_possibilities[0]))
+            
+            # Update final cypher based on user selections
+
+            # TODO: Remove fully decrypted words that don't show up in the dictionary
+            
 
 if __name__ == '__main__':
     menu = Menu(
