@@ -292,6 +292,9 @@ class Cryptogram():
             self.words.append(alphabetic_line)
             self.count(self.encrypted[line])
 
+        # Join all encrypted lines
+        self.encrypted = ''.join(line for line in self.encrypted)
+
         # Count the total number of alphabetic characters
         total = 0
         for letter in self.letter_count:
@@ -384,7 +387,7 @@ class Cryptogram():
         # Determine alphabetic message length
         else:
             self.message_length = 0
-            for letter in self.encrypted[0]:
+            for letter in self.encrypted:
                 if letter.isalpha():
                     self.message_length = self.message_length + 1
 

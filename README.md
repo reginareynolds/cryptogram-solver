@@ -201,7 +201,6 @@ Since each encrypted letter corresponds to exactly one decrypted letter, once an
 ```
 
 ### Decryption
-
 Now that the ```Cypher``` has been simplifed, we can attempt to decrypt the message. The ```decrypt(self)``` function first calls the ```replace(self)``` function, which assembles a partially/fully decrypted version of the encrypted message by comparing each letter in the encrypted message to the list of letters with known solutions and replacing them when possible, otherwise leaving them encrypted. The ```replace(self)``` function also keeps track of how many letters were replaced and returns this value. Below are the relevant lines of code from the ```replace(self)``` function.
 
 ```
@@ -262,6 +261,18 @@ if count != self.message_length:
     self.word_frequency()
     self.rerun_check()
 ```
+
+### Partially solved words
+In the event that the message was only semi-decrypted, it becomes possible to further narrow down potential letter solutions by examining any partially solved words. Attempting to decrypt our[example sentence](#original-text) outputs the following:
+
+```
+encrypted
+['YPX EBULY WXYPHC EHU XLYBWJYBDS YPX BDYXKKBSXDNX 
+HE J UOKXU BL YH KHHZ JY YPX WXD PX PJL JUHODC PBW']
+decrypted
+TPE EIULT WETPHC EHU ELTIWATING TPE INTELLIGENCE HE A UOLEU IL TH LHHZ AT TPE WEN PE PAL AUHONC PIW  
+```
+and its [encryption](#encrypted-text)
 
 ## File structure
 The repository consists of the following files:
