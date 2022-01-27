@@ -271,7 +271,54 @@ YPX EBULY WXYPHC EHU XLYBWJYBDS YPX BDYXKKBSXDNX HE J UOKXU BL YH KHHZ JY YPX WX
 decrypted
 TPE EIULT WETPHC EHU ELTIWATING TPE INTELLIGENCE HE A UOLEU IL TH LHHZ AT TPE WEN PE PAL AUHONC PIW  
 ```
-and its [encryption](#encrypted-text)
+
+We can see that the first word of the encrypted sentence (YPX) has a letter in the same place as the first word of the decrypted sentence (TPE). This means that the word was only partially decrypted.
+
+We know that the [word pattern](#word-patterns) for YPX is 012. According to our dictionary, there are 488 words with a matching word pattern:
+
+```
+from word_patterns import dictionary_patterns
+len(dictionary_patterns['012'])
+```
+
+[Previously](#comparing-word-patterns), when we found potential decrypted letter solutions by using word patterns, we did not account for *what* the letter value was, only for *where* that value was located. This is because we knew that all of the letters were encrypted. With partially decrypted words, we can now narrow our search results to include only words that contain solved letters in the correct spots. We do this using the ```partially_solved(self)``` function. 
+
+First, we iterate through each word in ```self.words```, comparing each letter to our cypher of solved letters (```self.final_cypher.cypher```) to determine if the word is only partially solved. If so, we then find the words in the dictionary with matching word patterns as we did before, but this time, we also remove any results that do not contain fully solved letters in the correct locations. We add the letters in these filtered results as potential letter solutions to a new ```Cypher``` object, then find the common keys between this and ```self.final_cypher.cypher```:
+
+```
+def partially_solved(self):
+    for word in self.words:
+        index = 0
+        correct_indices = []  # Holds solved letters and their position in the word
+        for letter in word:
+            # Solved letter
+            if len(self.final_cypher.cypher[letter]) == 1:
+                correct_indices.append((index, self.final_cypher.cypher[letter]))
+            index = index + 1
+
+        # Only partially solved word
+        if len(correct_indices) != len(word):
+            pattern = get_word_pattern(word)
+            wrong_matches = []
+            dictionary_matches = deepcopy(dictionary_patterns[pattern])
+
+            # Find matching dictionary patterns
+            for dictionary_match in dictionary_matches:
+                for correct_index in correct_indices:
+                    if dictionary_match[correct_index[0]] != correct_index[1][0]:
+                        wrong_matches.append(dictionary_match)
+                        break
+
+            # Remove any dictionary matches that don't have the solved letters in the correct spots
+            for match in wrong_matches:
+                dictionary_matches.remove(match)
+
+            print(self.final_cypher.cypher)
+            cypher = Cypher()  # Create new cypher
+            cypher.add_cypher_keys(len(word), word, dictionary_matches)
+            self.final_cypher = common_keys(cypher.cypher, self.final_cypher.cypher)
+            self.simplify_decryption()
+```
 
 ## File structure
 The repository consists of the following files:

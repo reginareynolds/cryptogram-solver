@@ -256,7 +256,7 @@ class Cryptogram():
     def __init__(self):
         self.file = None
         self.encrypted = None
-        self.words = []  # Access using [x][y], where x is the line number index and y is the word number index in that line
+        self.words = []  # Access using [x], where x is the word number index
         self.letter_count = collections.Counter()  # Running count of letter appearances in encrypted text
         self.letters = Alphabet()
         self.word_patterns = {}
@@ -443,6 +443,7 @@ class Cryptogram():
                     correct_indices.append((index, self.final_cypher.cypher[letter]))
                 index = index + 1
 
+            # TODO: Determine how this is affected by punctuation, i.e. a contraction
             # Only partially solved word
             if len(correct_indices) != len(word):
                 pattern = get_word_pattern(word)
