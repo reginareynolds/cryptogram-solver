@@ -529,6 +529,20 @@ class Cryptogram():
         incorrect_letters = Cypher()  # Access using [x], where x is the encrypted, unsolved letter. Returns indices containing x
         self.replace(incorrect_letters)
 
+    
+        # tests = []
+        # for letter in unsolved_letters:
+        #     for possibility in letter[1]:
+        #         test = list(deepcopy(self.decrypted))
+        #         for index in incorrect_letters.cypher[letter[0]]:
+        #             test[index] = possibility
+        #         tests.append((test, (letter[0], possibility)))
+
+        test_decrypt = list(deepcopy(self.decrypted))
+
+
+
+
         # Dynamically create possible decryptions using combinations of unsolved letters  
         total_possibilities = []
         unsolved_letter = unsolved_letters[0]
@@ -566,7 +580,66 @@ class Cryptogram():
                 if applicable not in wrong_words:
                     wrong_words.append(((self.word_indices[word_index], self.word_indices[word_index + 1]), applicable))
 
-        line_groups = []  # List of uncertain words in each possible decryption
+
+
+
+
+
+        # Remove potential decrypted letters if fully decrypted words don't show up in the dictionary
+        partial_words = []
+        for word in wrong_words:
+            letter_possibilities = self.final_cypher.cypher[test_decrypt[word[1][0]]]
+            for letter in letter_possibilities:
+                copy = list(deepcopy(self.decrypted))
+                copy[word[1][0]] = letter
+                partial_word = ''.join(test_decrypt[word[0][0]:word[0][1]]).strip()
+                if partial_word not in partial_words:
+                    freq = word_frequency(partial_word, 'en')
+                    if freq > 0:
+                        partial_words.append(partial_word)
+                    elif letter in self.final_cypher.cypher[test_decrypt[word[1][0]]]:
+                        print("pre removal cypher")
+                        print(self.final_cypher.cypher)
+                        print("encrypted")
+                        print(letter)
+                        self.final_cypher.cypher[test_decrypt[word[1][0]]].remove(letter)
+                        print("post removal cypher")
+                        print(self.final_cypher.cypher)
+
+
+
+
+
+
+        # for line in tests:
+        #     for word in wrong_words:
+        #         partial_word = ''.join(line[0][word[0][0]:word[0][1]]).strip()
+        #         if partial_word not in partial_words:
+        #             partial_words.append((partial_word, line[1]))
+        
+        # # TODO: x[1] needs to be appended based on letters replaced WITHIN THAT WORD, not within that line possibility
+        # for x in partial_words:
+        #     print(x[0])
+        #     freq = word_frequency(x[0], 'en')
+        #     if freq>0:
+        #         pass
+        #     # Word does not exist in English language
+        #     else:
+        #         print("pre removal cypher")
+        #         print(self.final_cypher.cypher)
+        #         print("encrypted")
+        #         print(x[1])
+        #         if x[1][1] in self.final_cypher.cypher[x[1][0]]:
+        #             self.final_cypher.cypher[x[1][0]].remove(x[1][1])
+        #         #.remove(for letter in unsolved_letters:
+        #             #   if line[1][0] == letter:
+        #             print("updated final cypher with removed letters based on frequency")
+        #             print(self.final_cypher.cypher)
+
+
+
+
+        line_groups = []  # List of uncertain words in each possible full decryption
         # Create list of possible word translations
         for decryption in total_possibilities:
             partial_words = []
