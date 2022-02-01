@@ -537,6 +537,7 @@ class Cryptogram():
                 if applicable not in wrong_words:
                     wrong_words.append(((self.word_indices[word_index], self.word_indices[word_index + 1]), applicable))
 
+        # TODO: Account for words in which multiple letters are incorrect. For example, in "HxLLz", if x can be E or I and z can be O or Y, there are 4 possible words: HELLO, HILLO, HELLY, HILLY
         # Remove potential decrypted letters if fully decrypted words don't show up in the dictionary
         partial_words = []
         for word in wrong_words:
@@ -544,8 +545,8 @@ class Cryptogram():
             for letter in letter_possibilities:
                 copy = list(deepcopy(self.decrypted))
                 copy[word[1][0]] = letter
-                partial_word = ''.join(test_decrypt[word[0][0]:word[0][1]]).strip()
-                if partial_word not in partial_words:
+                    partial_word = (''.join(copy[word[0][0]:word[0][1]]).strip(), test_decrypt[index])
+                    # TODO: Words need to be appended before removing them from final cypher, otherwise letters get skipped
                     freq = word_frequency(partial_word, 'en')
                     if freq > 0:
                         partial_words.append(partial_word)
