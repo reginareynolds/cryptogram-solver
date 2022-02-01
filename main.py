@@ -395,7 +395,7 @@ class Cryptogram():
         if count != self.message_length:
             self.partially_solved()
             # self.find_key_words()
-            self.word_frequency()
+            self.user_choice()
             self.rerun_check()
 
     def replace(self, incorrect_letters = None):
@@ -474,7 +474,7 @@ class Cryptogram():
         if sum([len(val) for val in self.final_cypher.cypher.values()]) < self.dict_length:
             self.decrypt()
         else:
-            self.word_frequency()
+            self.user_choice()
 
     # Identify potential key words and prefixes/suffixes
     def find_key_words(self):
@@ -519,51 +519,8 @@ class Cryptogram():
                     holder.append(group[word])
             words.append(holder)
 
-    # TODO: Finalize final cypher using user selected words. Show final decryption in place of decrypt button. Escape decryption loop
-    def word_frequency(self):
-        unsolved_letters = []  # List of unsolved letters and their possible decryptions
-        for letter in self.final_cypher.cypher:
-            if len(self.final_cypher.cypher[letter]) > 1:  # TODO: Should this be greater than 1 or != 1?
-                unsolved_letters.append((letter, self.final_cypher.cypher[letter]))
-
-        incorrect_letters = Cypher()  # Access using [x], where x is the encrypted, unsolved letter. Returns indices containing x
-        self.replace(incorrect_letters)
-
-    
-        # tests = []
-        # for letter in unsolved_letters:
-        #     for possibility in letter[1]:
-        #         test = list(deepcopy(self.decrypted))
-        #         for index in incorrect_letters.cypher[letter[0]]:
-        #             test[index] = possibility
-        #         tests.append((test, (letter[0], possibility)))
-
+    def remove_non_words(self):
         test_decrypt = list(deepcopy(self.decrypted))
-
-
-
-
-        # Dynamically create possible decryptions using combinations of unsolved letters  
-        total_possibilities = []
-        unsolved_letter = unsolved_letters[0]
-        for possibility in unsolved_letter[1]:
-            possible = list(deepcopy(self.decrypted))
-            for index in incorrect_letters.cypher[unsolved_letter[0]]:
-                possible[index] = possibility
-            total_possibilities.append(possible)
-        
-        x = 1
-        while x < len(unsolved_letters):        
-            unsolved_letter = unsolved_letters[x]
-            possibilities = []
-            for possibility in unsolved_letter[1]:
-                for previous_letter in total_possibilities:
-                    possible = list(deepcopy(previous_letter))
-                    for index in incorrect_letters.cypher[unsolved_letter[0]]:
-                        possible[index] = possibility
-                    possibilities.append(possible)
-            total_possibilities = possibilities
-            x = x + 1
 
         wrong_words = []  # In form of ((a, b), [c...]), where a and b are the start and end indices of the word and c... are the uncertain letters within the word
         # Find start and end of word containing unsolved letter index
@@ -579,11 +536,6 @@ class Cryptogram():
             if len(applicable):
                 if applicable not in wrong_words:
                     wrong_words.append(((self.word_indices[word_index], self.word_indices[word_index + 1]), applicable))
-
-
-
-
-
 
         # Remove potential decrypted letters if fully decrypted words don't show up in the dictionary
         partial_words = []
@@ -608,36 +560,39 @@ class Cryptogram():
 
 
 
+    # TODO: Finalize final cypher using user selected words. Show final decryption in place of decrypt button. Escape decryption loop
+    def user_choice(self):
+        incorrect_letters = Cypher()  # Access using [x], where x is the encrypted, unsolved letter. Returns indices containing x
+        self.replace(incorrect_letters)
 
+        self.remove_non_words()
 
+        unsolved_letters = []  # List of unsolved letters and their possible decryptions
+        for letter in self.final_cypher.cypher:
+            if len(self.final_cypher.cypher[letter]) > 1:  # TODO: Should this be greater than 1 or != 1?
+                unsolved_letters.append((letter, self.final_cypher.cypher[letter]))
 
-        # for line in tests:
-        #     for word in wrong_words:
-        #         partial_word = ''.join(line[0][word[0][0]:word[0][1]]).strip()
-        #         if partial_word not in partial_words:
-        #             partial_words.append((partial_word, line[1]))
+        # Dynamically create possible decryptions using combinations of unsolved letters  
+        total_possibilities = []
+        unsolved_letter = unsolved_letters[0]
+        for possibility in unsolved_letter[1]:
+            possible = list(deepcopy(self.decrypted))
+            for index in incorrect_letters.cypher[unsolved_letter[0]]:
+                possible[index] = possibility
+            total_possibilities.append(possible)
         
-        # # TODO: x[1] needs to be appended based on letters replaced WITHIN THAT WORD, not within that line possibility
-        # for x in partial_words:
-        #     print(x[0])
-        #     freq = word_frequency(x[0], 'en')
-        #     if freq>0:
-        #         pass
-        #     # Word does not exist in English language
-        #     else:
-        #         print("pre removal cypher")
-        #         print(self.final_cypher.cypher)
-        #         print("encrypted")
-        #         print(x[1])
-        #         if x[1][1] in self.final_cypher.cypher[x[1][0]]:
-        #             self.final_cypher.cypher[x[1][0]].remove(x[1][1])
-        #         #.remove(for letter in unsolved_letters:
-        #             #   if line[1][0] == letter:
-        #             print("updated final cypher with removed letters based on frequency")
-        #             print(self.final_cypher.cypher)
-
-
-
+        x = 1
+        while x < len(unsolved_letters):        
+            unsolved_letter = unsolved_letters[x]
+            possibilities = []
+            for possibility in unsolved_letter[1]:
+                for previous_letter in total_possibilities:
+                    possible = list(deepcopy(previous_letter))
+                    for index in incorrect_letters.cypher[unsolved_letter[0]]:
+                        possible[index] = possibility
+                    possibilities.append(possible)
+            total_possibilities = possibilities
+            x = x + 1
 
         line_groups = []  # List of uncertain words in each possible full decryption
         # Create list of possible word translations
