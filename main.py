@@ -395,6 +395,7 @@ class Cryptogram():
         if count != self.message_length:
             self.partially_solved()
             # self.find_key_words()
+            self.remove_non_words()
             self.user_choice()
             self.rerun_check()
 
@@ -519,10 +520,8 @@ class Cryptogram():
                     holder.append(group[word])
             words.append(holder)
 
-    def remove_non_words(self):
-        test_decrypt = list(deepcopy(self.decrypted))
-
-        wrong_words = []  # In form of ((a, b), [c...]), where a and b are the start and end indices of the word and c... are the uncertain letters within the word
+    # Find words containing uncertain letters
+    def wrong_words(self, wrong_list):
         # Find start and end of word containing unsolved letter index
         for word_index in range(0, len(self.word_indices)):
             applicable = []
@@ -534,39 +533,59 @@ class Cryptogram():
                     
             # Check if word contained incorrect indices
             if len(applicable):
-                if applicable not in wrong_words:
-                    wrong_words.append(((self.word_indices[word_index], self.word_indices[word_index + 1]), applicable))
+                if applicable not in wrong_list:
+                    wrong_list.append(((self.word_indices[word_index], self.word_indices[word_index + 1]), applicable))
 
-        # TODO: Account for words in which multiple letters are incorrect. For example, in "HxLLz", if x can be E or I and z can be O or Y, there are 4 possible words: HELLO, HILLO, HELLY, HILLY
+    # Remove uncertain letter possibilities that result in non-words
+    def remove_non_words(self):
+        test_decrypt = list(deepcopy(self.decrypted))
+
+        wrong = []  # In form of ((a, b), [c...]), where a and b are the start and end indices of the word and c... are the uncertain letters within the word
+        self.wrong_words(wrong)
+
+        # TODO: Account for words in which multiple letters are incorrect. For example, in "HxLLz", if x can be E or I and z can be O or Y, there are 4 possible words: HELLO, HILLO, HELLY, HILLY. May need to use total_possibility logic from before but limit it to words, not lines
         # Remove potential decrypted letters if fully decrypted words don't show up in the dictionary
         partial_words = []
-        for word in wrong_words:
-            letter_possibilities = self.final_cypher.cypher[test_decrypt[word[1][0]]]
-            for letter in letter_possibilities:
-                copy = list(deepcopy(self.decrypted))
-                copy[word[1][0]] = letter
-                    partial_word = (''.join(copy[word[0][0]:word[0][1]]).strip(), test_decrypt[index])
-                    # TODO: Words need to be appended before removing them from final cypher, otherwise letters get skipped
-                    freq = word_frequency(partial_word, 'en')
-                    if freq > 0:
-                        partial_words.append(partial_word)
-                    elif letter in self.final_cypher.cypher[test_decrypt[word[1][0]]]:
-                        print("pre removal cypher")
-                        print(self.final_cypher.cypher)
-                        print("encrypted")
-                        print(letter)
-                        self.final_cypher.cypher[test_decrypt[word[1][0]]].remove(letter)
-                        print("post removal cypher")
-                        print(self.final_cypher.cypher)
 
+        # Loop through words containing uncertain letters
+        for word in wrong:
+            indices = word[1]  # Incorrect indices within the word
+            for index in indices:
+                enc_letter = test_decrypt[index]  # Encrypted uncertain letter
+                letter_possibilities = self.final_cypher.cypher[enc_letter]  # Decrypted letter possibilities for encrypted letter
+                # Loop through decrypted letter possibilities
+                for dec_letter in letter_possibilities:
+                    copy = list(deepcopy(self.decrypted))
+                    copy[word[1][0]] = dec_letter  # Replace encrypted letter with possible decrypted letter
+                    partial_word = (''.join(copy[word[0][0]:word[0][1]]).strip(), enc_letter, dec_letter)
+                    # TODO: Words need to be appended before removing them from final cypher, otherwise letters get skipped
+                    if partial_word not in partial_words:
+                        partial_words.append(partial_word)
+
+        for poss_word in partial_words:
+            word = poss_word[0]
+            print(word)
+            enc_letter = poss_word[1]
+            dec_letter = poss_word[2]
+            freq = word_frequency(word, 'en')
+            print(freq)
+            if freq == 0:
+                if dec_letter in self.final_cypher.cypher[enc_letter]:
+                    print("pre removal cypher")
+                    print(self.final_cypher.cypher)
+                    print("encrypted")
+                    print(enc_letter)
+                    self.final_cypher.cypher[enc_letter].remove(dec_letter)
+                    print("post removal cypher")
+                    print(self.final_cypher.cypher)
+
+        self.rerun_check()
 
 
     # TODO: Finalize final cypher using user selected words. Show final decryption in place of decrypt button. Escape decryption loop
     def user_choice(self):
         incorrect_letters = Cypher()  # Access using [x], where x is the encrypted, unsolved letter. Returns indices containing x
         self.replace(incorrect_letters)
-
-        self.remove_non_words()
 
         unsolved_letters = []  # List of unsolved letters and their possible decryptions
         for letter in self.final_cypher.cypher:
@@ -595,18 +614,21 @@ class Cryptogram():
             total_possibilities = possibilities
             x = x + 1
 
+        wrong = []
+        self.wrong_words(wrong)
+
         line_groups = []  # List of uncertain words in each possible full decryption
         # Create list of possible word translations
         for decryption in total_possibilities:
             partial_words = []
-            for word in wrong_words:
+            for word in wrong:
                 partial_word = ''.join(decryption[word[0][0]:word[0][1]]).strip()
                 if partial_word not in partial_words:
                     partial_words.append(partial_word)
             line_groups.append(partial_words) 
 
         word_groups = []  # List of possible decryptions for each uncertain word
-        self.word_groups(wrong_words, word_groups, line_groups)
+        self.word_groups(wrong, word_groups, line_groups)
 
 # TODO: Remove any decryptions where uncertain letters are translated to the same letter
         # Check if there are any partially decrypted words
@@ -625,7 +647,7 @@ class Cryptogram():
             # Give user option to confirm based on word frequency
             word_count = 0
             compare = []
-            self.word_groups(wrong_words, compare, line_groups)
+            self.word_groups(wrong, compare, line_groups)
             
             for group in word_groups:
                 # User selection has removed possibilities from other uncertain words
@@ -664,7 +686,7 @@ class Cryptogram():
                                 total_possibilities.remove(wrong)
 
                             compare = []
-                            self.word_groups(wrong_words, compare, line_groups)
+                            self.word_groups(wrong, compare, line_groups)
 
                             prompt = False
 
