@@ -8,6 +8,9 @@ from word_patterns import dictionary_patterns
 from copy import deepcopy
 from math import prod
 
+import kivy
+from kivy.app import App
+from kivy.properties import ObjectProperty
 
 class Menu(Tk):
     def __init__(self, title, buttons):
@@ -700,8 +703,44 @@ class Cryptogram():
             # TODO: Remove fully decrypted words that don't show up in the dictionary
             
 
+def change_page(new_page, *dt):
+    """Change slide displayed in carousel"""
+    app.frame.carousel.load_slide(app.frame.carousel.slides[new_page])
+
+class ScreenFrame(Widget):
+    carousel = ObjectProperty(None)
+
+class MenuScreen(Widget):
+    options = ObjectProperty(None)
+
+    def callback(self, instance):
+        change_page(int(instance.name))
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        for child in self.options.children:
+            child.bind(on_press=self.callback)   
+
+     
+class CryptogramSolverApp(App):
+    def build(self):
+        self.frame = ScreenFrame()
+
+        # Initialize different screens
+        menu_screen = MenuScreen()
+        # solution_screen = LoadingScreen()
+
+
+        # Add screens to carousel
+        self.frame.carousel.add_widget(menu_screen)
+        # self.frame.carousel.add_widget(solution_screen)
+
+        return self.frame    
+
+
 if __name__ == '__main__':
-    menu = Menu(
-        "Crypto-Solver!", ((1, "Choose an encrypted file."), (2, "Decrypt cryptogram.")))
-    menu.mainloop()
-    menu.destroy()
+    # menu = Menu(
+    #     "Crypto-Solver!", ((1, "Choose an encrypted file."), (2, "Decrypt cryptogram.")))
+    # menu.mainloop()
+    # menu.destroy()
+    app = CryptogramSolverApp()
+    app.run()
