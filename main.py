@@ -11,6 +11,8 @@ from math import prod
 import kivy
 from kivy.app import App
 from kivy.properties import ObjectProperty
+from kivy.uix.popup import Popup
+from kivy.uix.relativelayout import RelativeLayout
 
 class Menu(Tk):
     def __init__(self, title, buttons):
@@ -714,7 +716,8 @@ class MenuScreen(Widget):
     options = ObjectProperty(None)
 
     def callback(self, instance):
-        change_page(int(instance.name))
+        popup = FileSelect()
+        popup.open()
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         for child in self.options.children:
