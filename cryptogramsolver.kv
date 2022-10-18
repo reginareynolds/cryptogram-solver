@@ -63,6 +63,7 @@
 
         FileChooserListView:
             id: file_selection
+            on_selection: root.select(file_selection.path, file_selection.selection)  # Bind selection to function
 
         GridLayout:
             id: button_selection
@@ -86,3 +87,4 @@
                 font_size: self.height/4
                 name: "2"
 
+                disabled: True  # Disabled by default until a file is selected

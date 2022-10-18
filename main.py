@@ -705,6 +705,25 @@ class Cryptogram():
             # TODO: Remove fully decrypted words that don't show up in the dictionary
             
 
+
+class FileSelect(Popup):
+    file_choice = ObjectProperty(None)
+    btn_selection = ObjectProperty(None)
+
+    def callback(self, instance):
+        print(instance)
+        print(instance.text)
+
+    def select(self, *kwargs):
+        print(*kwargs)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        # Bind cancel and select buttons
+        for child in self.btn_selection.children:
+            child.bind(on_press=self.callback)
+
 def change_page(new_page, *dt):
     """Change slide displayed in carousel"""
     app.frame.carousel.load_slide(app.frame.carousel.slides[new_page])
