@@ -710,9 +710,16 @@ class FileSelect(Popup):
     file_choice = ObjectProperty(None)
     btn_selection = ObjectProperty(None)
 
+    # Dismiss popup
+    def cancel(self):
+        self.dismiss()
+
+    def submit(self):
+        pass
+
     def callback(self, instance):
-        print(instance)
-        print(instance.text)
+        method = getattr(self, instance.text.lower())
+        return method()
 
     def select(self, file_path, file_picked):
         # Enable submission button as necessary
@@ -742,6 +749,7 @@ class MenuScreen(Widget):
     def callback(self, instance):
         popup = FileSelect()
         popup.open()
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         for child in self.options.children:
