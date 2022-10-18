@@ -1,7 +1,6 @@
 import sys
 import collections
-from wordfreq import word_frequency
-from tkinter import Button, Frame, Tk, messagebox
+import os
 from tkinter.filedialog import askopenfilename
 from patterns import get_word_pattern
 from word_patterns import dictionary_patterns
@@ -710,12 +709,14 @@ class FileSelect(Popup):
     file_choice = ObjectProperty(None)
     btn_selection = ObjectProperty(None)
 
-    # Dismiss popup
-    def cancel(self):
+    def submit(self):
+        with open(os.path.join(self.file_choice.path, self.file_choice.selection[0])) as file:
+            print(file.read())
+
+        # Close popup
         self.dismiss()
 
-    def submit(self):
-        pass
+        # TODO: Change screens to encryption vs. decryption window
 
     def callback(self, instance):
         method = getattr(self, instance.text.lower())

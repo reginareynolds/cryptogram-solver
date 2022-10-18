@@ -78,12 +78,12 @@
             pos_hint: {'x': 1/6}
 
             Button:
-                text: "Cancel"
+                text: "Dismiss"  # Using this as the button text allows callback in main.py to reference built-in method popup.dismiss() 
                 font_size: self.height/4
                 name: "1"
         
             Button:
-                text: "Select"
+                text: "Submit"
                 font_size: self.height/4
                 name: "2"
 
