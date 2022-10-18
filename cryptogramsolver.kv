@@ -1,0 +1,90 @@
+#:kivy 1.0.9
+
+<ScreenFrame>:
+    carousel: screen_selection
+    Label:
+        text: "Crypto-Solver!"
+        font_size: 70
+        center_x: root.width/2
+        top: root.top-10
+        height: 70
+
+    RelativeLayout:
+        Carousel:
+            id: screen_selection
+            direction: "right"
+            scroll_timeout: 0
+
+            size_hint_x: None
+            width: root.width
+            center_x: root.width/2
+            
+            size_hint_y: None
+            height: root.top-100
+            center_y: (root.height-100)*1/2     
+
+<MenuScreen>:
+    options: selection
+
+    GridLayout:
+        id: selection
+        cols: 1
+
+        size_hint_x: None
+        width: root.width*2/3
+        center_x: root.width/2
+        
+        size_hint_y: None
+        height: (root.top-85)
+        center_y: (root.height+20)/2
+
+        Button:
+            text: "Choose an encrypted file."
+            font_size: self.height/5
+            name: "1"
+    
+        Button:
+            text: "Decrypt cryptogram."
+            font_size: self.height/5
+            name: "2"
+
+            disabled: True
+
+<FileSelect>:
+    size_hint_x: 0.8
+    size_hint_y: 0.8
+    title: "File selection"
+    file_choice: file_selection
+    btn_selection: button_selection
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 5
+
+        FileChooserListView:
+            id: file_selection
+            on_selection: root.select(file_selection.path, file_selection.selection)  # Bind selection to function
+
+        GridLayout:
+            id: button_selection
+            cols: 2
+
+            size_hint_x: None
+            width: self.parent.width*2/3
+            
+            size_hint_y: None
+            height: root.top/8
+
+            pos_hint: {'x': 1/6}
+
+            Button:
+                text: "Dismiss"  # Using this as the button text allows callback in main.py to reference built-in method popup.dismiss() 
+                font_size: self.height/4
+                name: "1"
+        
+            Button:
+                text: "Submit"
+                font_size: self.height/4
+                name: "2"
+
+                disabled: True  # Disabled by default until a file is selected

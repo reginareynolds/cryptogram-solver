@@ -1,13 +1,17 @@
 import sys
 import collections
-from wordfreq import word_frequency
-from tkinter import Button, Frame, Tk, messagebox
+import os
 from tkinter.filedialog import askopenfilename
 from patterns import get_word_pattern
 from word_patterns import dictionary_patterns
 from copy import deepcopy
 from math import prod
 
+import kivy
+from kivy.app import App
+from kivy.properties import ObjectProperty
+from kivy.uix.popup import Popup
+from kivy.uix.relativelayout import RelativeLayout
 
 class Menu(Tk):
     def __init__(self, title, buttons):
@@ -700,8 +704,79 @@ class Cryptogram():
             # TODO: Remove fully decrypted words that don't show up in the dictionary
             
 
+
+class FileSelect(Popup):
+    file_choice = ObjectProperty(None)
+    btn_selection = ObjectProperty(None)
+
+    def submit(self):
+        with open(os.path.join(self.file_choice.path, self.file_choice.selection[0])) as file:
+            print(file.read())
+
+        # Close popup
+        self.dismiss()
+
+        # TODO: Change screens to encryption vs. decryption window
+
+    def callback(self, instance):
+        method = getattr(self, instance.text.lower())
+        return method()
+
+    def select(self, file_path, file_picked):
+        # Enable submission button as necessary
+        if file_picked:
+            self.btn_selection.children[0].disabled = False
+        else:
+            self.btn_selection.children[0].disabled = True
+
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        # Bind cancel and select buttons
+        for child in self.btn_selection.children:
+            child.bind(on_press=self.callback)
+
+def change_page(new_page, *dt):
+    """Change slide displayed in carousel"""
+    app.frame.carousel.load_slide(app.frame.carousel.slides[new_page])
+
+class ScreenFrame(Widget):
+    carousel = ObjectProperty(None)
+
+class MenuScreen(Widget):
+    options = ObjectProperty(None)
+
+    def callback(self, instance):
+        popup = FileSelect()
+        popup.open()
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        for child in self.options.children:
+            child.bind(on_press=self.callback)   
+
+     
+class CryptogramSolverApp(App):
+    def build(self):
+        self.frame = ScreenFrame()
+
+        # Initialize different screens
+        menu_screen = MenuScreen()
+        # solution_screen = LoadingScreen()
+
+
+        # Add screens to carousel
+        self.frame.carousel.add_widget(menu_screen)
+        # self.frame.carousel.add_widget(solution_screen)
+
+        return self.frame    
+
+
 if __name__ == '__main__':
-    menu = Menu(
-        "Crypto-Solver!", ((1, "Choose an encrypted file."), (2, "Decrypt cryptogram.")))
-    menu.mainloop()
-    menu.destroy()
+    # menu = Menu(
+    #     "Crypto-Solver!", ((1, "Choose an encrypted file."), (2, "Decrypt cryptogram.")))
+    # menu.mainloop()
+    # menu.destroy()
+    app = CryptogramSolverApp()
+    app.run()
