@@ -714,8 +714,13 @@ class FileSelect(Popup):
         print(instance)
         print(instance.text)
 
-    def select(self, *kwargs):
-        print(*kwargs)
+    def select(self, file_path, file_picked):
+        # Enable submission button as necessary
+        if file_picked:
+            self.btn_selection.children[0].disabled = False
+        else:
+            self.btn_selection.children[0].disabled = True
+
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
