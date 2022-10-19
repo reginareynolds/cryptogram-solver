@@ -732,6 +732,9 @@ class FileSelect(Popup):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        # Set default directory to current directory
+        self.file_choice.path = os.path.abspath(os.getcwd())
+
         # Bind cancel and select buttons
         for child in self.btn_selection.children:
             child.bind(on_press=self.callback)
@@ -769,11 +772,13 @@ class CryptogramSolverApp(App):
 
         # Initialize different screens
         menu_screen = MenuScreen()
+        cryptogram_screen = CryptogramScreen()
         # solution_screen = LoadingScreen()
 
 
         # Add screens to carousel
         self.frame.carousel.add_widget(menu_screen)
+        self.frame.carousel.add_widget(cryptogram_screen)
         # self.frame.carousel.add_widget(solution_screen)
 
         return self.frame    
