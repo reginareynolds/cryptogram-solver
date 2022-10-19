@@ -729,7 +729,6 @@ class FileSelect(Popup):
         else:
             self.btn_selection.children[0].disabled = True
 
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -743,6 +742,13 @@ def change_page(new_page, *dt):
 
 class ScreenFrame(Widget):
     carousel = ObjectProperty(None)
+
+class CryptogramScreen(Widget):
+    encrypted_text = ObjectProperty(None)
+    decrypted_text = ObjectProperty(None)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
 class MenuScreen(Widget):
     options = ObjectProperty(None)
