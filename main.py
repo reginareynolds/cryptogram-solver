@@ -711,12 +711,14 @@ class FileSelect(Popup):
 
     def submit(self):
         with open(os.path.join(self.file_choice.path, self.file_choice.selection[0])) as file:
-            print(file.read())
+            # Set cryptogram screen encrypted_text to file contents
+            app.frame.carousel.slides[1].encrypted_text.text = file.read()
 
         # Close popup
         self.dismiss()
 
-        # TODO: Change screens to encryption vs. decryption window
+        # Change screens to encryption vs. decryption window
+        change_page(1)
 
     def callback(self, instance):
         method = getattr(self, instance.text.lower())
