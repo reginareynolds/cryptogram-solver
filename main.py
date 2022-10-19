@@ -11,7 +11,7 @@ import kivy
 from kivy.app import App
 from kivy.properties import ObjectProperty
 from kivy.uix.popup import Popup
-from kivy.uix.relativelayout import RelativeLayout
+from kivy.uix.widget import Widget
 
 class Menu(Tk):
     def __init__(self, title, buttons):
@@ -702,7 +702,7 @@ class Cryptogram():
             # Update final cypher based on user selections
 
             # TODO: Remove fully decrypted words that don't show up in the dictionary
-            
+
 
 
 class FileSelect(Popup):
@@ -712,7 +712,9 @@ class FileSelect(Popup):
     def submit(self):
         with open(os.path.join(self.file_choice.path, self.file_choice.selection[0])) as file:
             # Set cryptogram screen encrypted_text to file contents
-            app.frame.carousel.slides[1].encrypted_text.text = file.read()
+            cryptogram_page = app.frame.carousel.slides[1]
+            cryptogram_page.path = file.name
+            cryptogram_page.encrypted_text.text = file.read()
 
         # Close popup
         self.dismiss()
@@ -751,9 +753,21 @@ class ScreenFrame(Widget):
 class CryptogramScreen(Widget):
     encrypted_text = ObjectProperty(None)
     decrypted_text = ObjectProperty(None)
+    start_decryption = ObjectProperty(None)
+
+    def callback(self, instance):
+        # Set path to cryptogram file and open
+        self.encoded.file = self.path
+        self.encoded.parse()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        # Final variables
+        self.path = None
+        self.encoded = Cryptogram()
+
+        self.start_decryption.bind(on_press=self.callback)
 
 class MenuScreen(Widget):
     options = ObjectProperty(None)
@@ -775,13 +789,10 @@ class CryptogramSolverApp(App):
         # Initialize different screens
         menu_screen = MenuScreen()
         cryptogram_screen = CryptogramScreen()
-        # solution_screen = LoadingScreen()
-
 
         # Add screens to carousel
         self.frame.carousel.add_widget(menu_screen)
         self.frame.carousel.add_widget(cryptogram_screen)
-        # self.frame.carousel.add_widget(solution_screen)
 
         return self.frame    
 
