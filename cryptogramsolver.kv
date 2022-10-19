@@ -53,6 +53,7 @@
 <CryptogramScreen>:
     encrypted_text: encrypted
     decrypted_text: decrypted
+    start_decryption: start
 
     GridLayout:
         cols: 2
@@ -77,8 +78,10 @@
 
         TextInput:
             id: encrypted
+            disabled: True
     
     Button:
+        id: start
         text: "Decrypt"
         font_size: self.height/4
         center_y: root.top/2
@@ -108,7 +111,7 @@
 
         TextInput:
             id: decrypted
-
+            disabled: True
 
 <FileSelect>:
     size_hint_x: 0.8
