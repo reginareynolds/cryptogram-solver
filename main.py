@@ -1,6 +1,9 @@
 import sys
 import collections
 import os
+import time
+from functools import partial
+from threading import Thread
 from tkinter.filedialog import askopenfilename
 from patterns import get_word_pattern
 from word_patterns import dictionary_patterns
@@ -9,6 +12,7 @@ from math import prod
 
 import kivy
 from kivy.app import App
+from kivy.clock import Clock
 from kivy.properties import ObjectProperty
 from kivy.uix.popup import Popup
 from kivy.uix.widget import Widget
@@ -434,6 +438,11 @@ class Cryptogram():
                         self.word_indices.append(wrong_index)
             wrong_index = wrong_index + 1
 
+        # Update decrypted text in Kivy window
+        cryptogram_page = app.frame.carousel.slides[1]
+        Clock.schedule_once(partial(cryptogram_page.update_text, self.decrypted))
+        time.sleep(3)  # Keeps iterations of decryption visible instead of iterating instantaneously 
+
         return(counter)
 
     # Takes partially solved words and searches the dictionary for matching patterns that specifically have the solved letters in those spots
@@ -755,10 +764,29 @@ class CryptogramScreen(Widget):
     decrypted_text = ObjectProperty(None)
     start_decryption = ObjectProperty(None)
 
+    def update_text(self, *kwargs):
+        self.decrypted_text.text = kwargs[0]
+
     def callback(self, instance):
+        # Set initial decrypted text to encrypted text
+        self.update_text(self.encrypted_text.text)
+
         # Set path to cryptogram file and open
         self.encoded.file = self.path
-        self.encoded.parse()
+        Thread(target=self.encoded.parse).start()
+
+        # N.B. The parsing needs to happen on a secondary thread, otherwise
+        # the parsing will happen on the main thread and will block the
+        # ecnrypted text from updating until AFTER the processing completes. The
+        # Thread target has to be a function/method, NOT a function/method CALL.
+        # That means that the target needs to look like this:
+        # Thread(target=functionName).start()
+        # NOT like this:
+        # Thread(target=functionName()).start()
+        # That means that we can't pass any arguments because we do that via
+        # function/method call. We can work around this by setting the target
+        # like this:
+        # Thread(target=partial(functionName, passed_variables).start()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -804,3 +832,5 @@ if __name__ == '__main__':
     # menu.destroy()
     app = CryptogramSolverApp()
     app.run()
+
+    # TODO: Update decrypted text with each newly decrypted letter, then again after the partially_solved() function
