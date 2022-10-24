@@ -438,6 +438,11 @@ class Cryptogram():
                         self.word_indices.append(wrong_index)
             wrong_index = wrong_index + 1
 
+        # Update decrypted text in Kivy window
+        cryptogram_page = app.frame.carousel.slides[1]
+        Clock.schedule_once(partial(cryptogram_page.update_text, self.decrypted))
+        time.sleep(3)  # Keeps iterations of decryption visible instead of iterating instantaneously 
+
         return(counter)
 
     # Takes partially solved words and searches the dictionary for matching patterns that specifically have the solved letters in those spots
