@@ -755,7 +755,13 @@ class CryptogramScreen(Widget):
     decrypted_text = ObjectProperty(None)
     start_decryption = ObjectProperty(None)
 
+    def update_text(self, *kwargs):
+        self.decrypted_text.text = kwargs[0]
+
     def callback(self, instance):
+        # Set initial decrypted text to encrypted text
+        self.update_text(self.encrypted_text.text)
+
         # Set path to cryptogram file and open
         self.encoded.file = self.path
         self.encoded.parse()
