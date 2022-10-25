@@ -14,6 +14,7 @@ import kivy
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.properties import ObjectProperty
+from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.widget import Widget
 
@@ -765,6 +766,7 @@ class CryptogramScreen(Widget):
     encrypted_text = ObjectProperty(None)
     decrypted_text = ObjectProperty(None)
     start_decryption = ObjectProperty(None)
+    decryption_cypher = ObjectProperty(None)
 
     def update_text(self, *kwargs):
         self.decrypted_text.text = kwargs[0]
@@ -773,6 +775,13 @@ class CryptogramScreen(Widget):
         # Set initial decrypted text to encrypted text
         self.update_text(self.encrypted_text.text)
 
+        # Initialize decryption cypher
+        dec_cypher = set(self.encrypted_text.text)
+        for enc_letter in dec_cypher:
+            enc_btn = Button(text=enc_letter)
+            dec_btn = Button()
+            self.decryption_cypher.add_widget(enc_btn)
+            self.decryption_cypher.add_widget(dec_btn)
         # Set path to cryptogram file and open
         self.encoded.file = self.path
         Thread(target=self.encoded.parse).start()
