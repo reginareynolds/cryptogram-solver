@@ -414,6 +414,8 @@ class Cryptogram():
         self.wrong_indices = []
         self.word_indices = []
 
+        # N.B. The reason that solved letters are not replaced in-line is to prevent replacing an ALREADY
+        # solved and replaced letter. By joining a letter solution to the decryption, we avoid this risk.
         wrong_index = 0  # Track index of current letter
         counter = 0  # Track how many letters were replaced
         for letter in range(0, len(self.encrypted)):
@@ -788,6 +790,12 @@ class CryptogramScreen(Widget):
         # like this:
         # Thread(target=partial(functionName, passed_variables).start()
 
+
+
+        # TODO: Show decrypted text in new window
+        # TODO: Only run decryption once to prevent additional parsing unless file path changes
+
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -824,7 +832,7 @@ class CryptogramSolverApp(App):
 
         return self.frame    
 
-
+# TODO: Show decryption progress bar. Show cypher and update as letters are solved?
 if __name__ == '__main__':
     # menu = Menu(
     #     "Crypto-Solver!", ((1, "Choose an encrypted file."), (2, "Decrypt cryptogram.")))
@@ -832,5 +840,3 @@ if __name__ == '__main__':
     # menu.destroy()
     app = CryptogramSolverApp()
     app.run()
-
-    # TODO: Update decrypted text with each newly decrypted letter, then again after the partially_solved() function
