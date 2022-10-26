@@ -127,20 +127,20 @@
         
         size_hint_y: None
         height: root.height
-        center_y: root.top * 15/16
         center_y: self.height/2
         padding: 10
+
         Label:
             text: "Decryption cypher"
             font_size: root.height/20
-
+        
         ScrollView:
             do_scroll_x: False
 
             # Avoid setting x parameters to allow the parent grid to correctly place it
 
             size_hint_y: None
-            height: root.height*19/20
+            height: root.height*17/20
             center_y: self.height/2
 
             effect_cls: "ScrollEffect"
@@ -148,6 +148,7 @@
             GridLayout:
                 id: cypher
                 cols: 2
+
                 size_hint_y: None
 
                 height: self.minimum_height
