@@ -126,9 +126,9 @@
         center_x: root.width * 3/4
         
         size_hint_y: None
-        # height: root.top*2/3
+        height: root.height
         center_y: root.top * 15/16
-
+        center_y: self.height/2
         padding: 10
         Label:
             text: "Decryption cypher"
@@ -136,10 +136,21 @@
 
         ScrollView:
             do_scroll_x: False
+
+            # Avoid setting x parameters to allow the parent grid to correctly place it
+
+            size_hint_y: None
+            height: root.height*19/20
+            center_y: self.height/2
+
+            effect_cls: "ScrollEffect"
+
             GridLayout:
                 id: cypher
                 cols: 2
-                padding: 10
+                size_hint_y: None
+
+                height: self.minimum_height
 <FileSelect>:
     size_hint_x: 0.8
     size_hint_y: 0.8
