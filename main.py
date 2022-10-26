@@ -776,12 +776,18 @@ class CryptogramScreen(Widget):
         self.update_text(self.encrypted_text.text)
 
         # Initialize decryption cypher
-        dec_cypher = set(self.encrypted_text.text)
+        dec_cypher = sorted(set(self.encrypted_text.text))
         for enc_letter in dec_cypher:
-            enc_btn = Button(text=enc_letter)
-            dec_btn = Button()
-            self.decryption_cypher.add_widget(enc_btn)
-            self.decryption_cypher.add_widget(dec_btn)
+            if enc_letter.isalpha():
+                enc_btn = Button(text=enc_letter)
+                dec_btn = Button()
+
+                enc_btn.size_hint_min_y=(enc_btn.font_size+50)
+                dec_btn.size_hint_min_y=(dec_btn.font_size+50)
+
+                self.decryption_cypher.add_widget(enc_btn)
+                self.decryption_cypher.add_widget(dec_btn)
+
         # Set path to cryptogram file and open
         self.encoded.file = self.path
         Thread(target=self.encoded.parse).start()
