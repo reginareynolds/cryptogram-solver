@@ -782,8 +782,8 @@ class CryptogramScreen(Widget):
                 enc_btn = Button(text=enc_letter)
                 dec_btn = Button()
 
-                enc_btn.size_hint_min_y=(enc_btn.font_size+50)
-                dec_btn.size_hint_min_y=(dec_btn.font_size+50)
+                enc_btn.size_hint_min_y=(enc_btn.font_size+30)
+                dec_btn.size_hint_min_y=(dec_btn.font_size+30)
 
                 self.decryption_cypher.add_widget(enc_btn)
                 self.decryption_cypher.add_widget(dec_btn)
