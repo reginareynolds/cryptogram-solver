@@ -767,6 +767,7 @@ class CryptogramScreen(Widget):
     decrypted_text = ObjectProperty(None)
     start_decryption = ObjectProperty(None)
     decryption_cypher = ObjectProperty(None)
+    default_encrypted = ObjectProperty(None)
 
     def update_text(self, *kwargs):
         self.decrypted_text.text = kwargs[0]

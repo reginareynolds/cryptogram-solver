@@ -55,6 +55,7 @@
     decrypted_text: decrypted
     start_decryption: start
     decryption_cypher: cypher
+    default_encrypted: def_encrypted
 
     GridLayout:
         cols: 2
@@ -166,6 +167,15 @@
                 size_hint_y: None
 
                 height: self.minimum_height
+
+                Button:
+                    id: def_encrypted
+                    text: "?"
+                    size_hint_min_y: self.font_size + 30
+
+                Button:
+                    text: "?"
+                    size_hint_min_y: self.font_size + 30
 
 <FileSelect>:
     size_hint_x: 0.8
