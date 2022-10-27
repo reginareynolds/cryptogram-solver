@@ -778,17 +778,32 @@ class CryptogramScreen(Widget):
 
         # Initialize decryption cypher
         dec_cypher = sorted(set(self.encrypted_text.text))
+
+        inc = 0
         for enc_letter in dec_cypher:
             if enc_letter.isalpha():
-                enc_btn = Button(text=enc_letter)
-                dec_btn = Button()
+                # Change default button text to an encrypted letter
+                if inc == 0:
+                    self.default_encrypted.text = enc_letter
+                # Initialize and add buttons
+                else:
+                    enc_btn = Button(text=enc_letter)
+                    dec_btn = Button(text="?")
 
-                enc_btn.size_hint_min_y=(enc_btn.font_size+30)
-                dec_btn.size_hint_min_y=(dec_btn.font_size+30)
+                    enc_btn.size_hint_min_y=(enc_btn.font_size+30)
+                    dec_btn.size_hint_min_y=(dec_btn.font_size+30)
 
-                self.decryption_cypher.add_widget(enc_btn)
-                self.decryption_cypher.add_widget(dec_btn)
+                    # Alternate button colors from default every other line
+                    if inc % 2:
+                        enc_btn.background_color=(0.75, 0.75, 0.75, 1)
+                        dec_btn.background_color=(0.75, 0.75, 0.75, 1)
 
+                    # Add buttons to decryption cypher
+                    self.decryption_cypher.add_widget(enc_btn)
+                    self.decryption_cypher.add_widget(dec_btn)
+
+                # Increment count
+                inc = inc + 1
         # Set path to cryptogram file and open
         self.encoded.file = self.path
         Thread(target=self.encoded.parse).start()
