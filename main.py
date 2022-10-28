@@ -772,6 +772,40 @@ class CryptogramScreen(Widget):
     def update_text(self, *kwargs):
         self.decrypted_text.text = kwargs[0]
 
+    # Add buttons to decryption cypher
+    def add_cypher_row(self, enc_char, dec_char, *kwargs):
+        self.decryption_cypher.add_widget(enc_char)
+        self.decryption_cypher.add_widget(dec_char)
+
+    def create_cypher(self, btns, dec_cypher):
+        inc = 0
+        for enc_letter in dec_cypher:
+            # Change default button text to an encrypted letter
+            if inc == 0:
+                self.default_encrypted.text = enc_letter
+            # Customize and add buttons
+            else:
+                enc_btn = btns[(inc-1)*2]  # Adjust inc to keep it within bounds of the btns list length
+                dec_btn = btns[(inc*2)-1]
+
+                enc_btn.text = enc_letter
+                dec_btn.text = "?"
+
+                enc_btn.size_hint_min_y=(enc_btn.font_size+30)
+                dec_btn.size_hint_min_y=(dec_btn.font_size+30)
+
+                # Alternate button colors from default every other line
+                if inc % 2:
+                    enc_btn.background_color=(0.75, 0.75, 0.75, 1)
+                    dec_btn.background_color=(0.75, 0.75, 0.75, 1)
+
+                # Add buttons to decryption cypher
+                Clock.schedule_once(partial(self.add_cypher_row, enc_btn, dec_btn))
+                time.sleep(0.5)
+
+            # Increment count
+            inc = inc + 1
+
     def callback(self, instance):
         # Set initial decrypted text to encrypted text
         self.update_text(self.encrypted_text.text)
@@ -779,39 +813,31 @@ class CryptogramScreen(Widget):
         # Initialize decryption cypher
         dec_cypher = sorted(set(self.encrypted_text.text))
 
-        inc = 0
-        for enc_letter in dec_cypher:
-            if enc_letter.isalpha():
-                # Change default button text to an encrypted letter
-                if inc == 0:
-                    self.default_encrypted.text = enc_letter
-                # Initialize and add buttons
-                else:
-                    enc_btn = Button(text=enc_letter)
-                    dec_btn = Button(text="?")
+        # Remove empty space from decryption cypher
+        if dec_cypher[0] == ' ':
+            dec_cypher.remove(dec_cypher[0])
 
-                    enc_btn.size_hint_min_y=(enc_btn.font_size+30)
-                    dec_btn.size_hint_min_y=(dec_btn.font_size+30)
+        # Initialize all buttons necessary in main thread
+        buttons = []
 
-                    # Alternate button colors from default every other line
-                    if inc % 2:
-                        enc_btn.background_color=(0.75, 0.75, 0.75, 1)
-                        dec_btn.background_color=(0.75, 0.75, 0.75, 1)
+        i = 0
 
-                    # Add buttons to decryption cypher
-                    self.decryption_cypher.add_widget(enc_btn)
-                    self.decryption_cypher.add_widget(dec_btn)
+        while i < len(dec_cypher)-1:  # len(dec_cypher)-1 to account for the two existing default buttons 
+            buttons.append(Button())
+            buttons.append(Button())
+            i= i+1
 
-                # Increment count
-                inc = inc + 1
+        # Add button widgets to decryption cypher in new thread
+        Thread(target=partial(self.create_cypher, buttons, dec_cypher)).start()
+
         # Set path to cryptogram file and open
         self.encoded.file = self.path
         Thread(target=self.encoded.parse).start()
 
         # N.B. The parsing needs to happen on a secondary thread, otherwise
         # the parsing will happen on the main thread and will block the
-        # ecnrypted text from updating until AFTER the processing completes. The
-        # Thread target has to be a function/method, NOT a function/method CALL.
+        # encrypted text/decryption cypher from updating until AFTER the processing completes. 
+        # The Thread target has to be a function/method, NOT a function/method CALL.
         # That means that the target needs to look like this:
         # Thread(target=functionName).start()
         # NOT like this:
