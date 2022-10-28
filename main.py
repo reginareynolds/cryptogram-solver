@@ -806,9 +806,15 @@ class CryptogramScreen(Widget):
             # Increment count
             inc = inc + 1
 
+        # Wait until all entries are added to decryption cypher to begin processing
+        Thread(target=self.encoded.parse).start()
+
     def callback(self, instance):
         # Set initial decrypted text to encrypted text
         self.update_text(self.encrypted_text.text)
+
+        # Set path to cryptogram file
+        self.encoded.file = self.path
 
         # Initialize decryption cypher
         dec_cypher = sorted(set(self.encrypted_text.text))
@@ -829,10 +835,6 @@ class CryptogramScreen(Widget):
 
         # Add button widgets to decryption cypher in new thread
         Thread(target=partial(self.create_cypher, buttons, dec_cypher)).start()
-
-        # Set path to cryptogram file and open
-        self.encoded.file = self.path
-        Thread(target=self.encoded.parse).start()
 
         # N.B. The parsing needs to happen on a secondary thread, otherwise
         # the parsing will happen on the main thread and will block the
