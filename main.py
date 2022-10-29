@@ -339,12 +339,26 @@ class Cryptogram():
         for count in range (0, len(self.cyphers)):
             self.final_cypher = common_keys(self.cyphers[count].cypher, self.final_cypher.cypher)
 
+        self.cypher_update()
+
         # Simplify common decrypted values
         self.simplify_decryption()
 
         # Decrypt as much of message as possible
         self.decrypt()
         # TODO: Determine how many times to rerun decrypt function
+
+    # Update decryption cypher in Kivy screen
+    def cypher_update(self, *kwargs):
+        cryptogram_page = app.frame.carousel.slides[1]
+    
+        # Get list of encrypted characters from self.final_cypher.cypher
+        encrypted_chars = [entry for entry in self.final_cypher.cypher if len(self.final_cypher.cypher[entry])]
+    
+        for item in encrypted_chars:
+            # Update buttons in decryption cypher
+            Clock.schedule_once(partial(cryptogram_page.update_decryption_possibilities, encrypted_chars.index(item), self.final_cypher.cypher[item]))
+            time.sleep(1)
 
     # Update letter count for file
     def count(self, word):
@@ -778,6 +792,25 @@ class CryptogramScreen(Widget):
     def add_cypher_row(self, enc_char, dec_char, *kwargs):
         self.decryption_cypher.add_widget(enc_char)
         self.decryption_cypher.add_widget(dec_char)
+
+    # TODO: Call this whenever the final cypher is updated
+    # Update button text in decryption cypher
+    def update_decryption_possibilities(self, ind, possibilities, *kwargs):
+        # Get buttons in row 
+        enc_btn = self.buttons[ind*2] 
+        dec_btn = self.buttons[(ind*2)+1]
+
+        # Only one possible solution for encrypted letter
+        if len(possibilities) == 1:
+            dec_btn.text = possibilities[0]
+
+            # Change solved button colors to green
+            enc_btn.background_color=(0, 1, 0, 1)
+            dec_btn.background_color=(0, 1, 0, 1)
+        # Not yet solved
+        else:
+            poss_solutions = ", ".join((possibilities))
+            dec_btn.text = poss_solutions
 
     def create_cypher(self, btns, dec_cypher):
         inc = 0
