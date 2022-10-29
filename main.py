@@ -805,8 +805,13 @@ class CryptogramScreen(Widget):
             dec_btn.text = possibilities[0]
 
             # Change solved button colors to green
-            enc_btn.background_color=(0, 1, 0, 1)
-            dec_btn.background_color=(0, 1, 0, 1)
+            if ind % 2:
+                enc_btn.background_color=(0, 0.75, 0, 1)
+                dec_btn.background_color=(0, 0.75, 0, 1)
+            else:
+                # Change solved button colors to green
+                enc_btn.background_color=(0, 1, 0, 1)
+                dec_btn.background_color=(0, 1, 0, 1)
         # Not yet solved
         else:
             poss_solutions = ", ".join((possibilities))
