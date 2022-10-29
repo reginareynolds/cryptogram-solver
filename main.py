@@ -14,6 +14,7 @@ import kivy
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.properties import ObjectProperty
+from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.widget import Widget
 
@@ -338,12 +339,26 @@ class Cryptogram():
         for count in range (0, len(self.cyphers)):
             self.final_cypher = common_keys(self.cyphers[count].cypher, self.final_cypher.cypher)
 
+        self.cypher_update()
+
         # Simplify common decrypted values
         self.simplify_decryption()
 
         # Decrypt as much of message as possible
         self.decrypt()
         # TODO: Determine how many times to rerun decrypt function
+
+    # Update decryption cypher in Kivy screen
+    def cypher_update(self, *kwargs):
+        cryptogram_page = app.frame.carousel.slides[1]
+    
+        # Get list of encrypted characters from self.final_cypher.cypher
+        encrypted_chars = [entry for entry in self.final_cypher.cypher if len(self.final_cypher.cypher[entry])]
+    
+        for item in encrypted_chars:
+            # Update buttons in decryption cypher
+            Clock.schedule_once(partial(cryptogram_page.update_decryption_possibilities, encrypted_chars.index(item), self.final_cypher.cypher[item]))
+            time.sleep(1)
 
     # Update letter count for file
     def count(self, word):
@@ -414,6 +429,8 @@ class Cryptogram():
         self.wrong_indices = []
         self.word_indices = []
 
+        # N.B. The reason that solved letters are not replaced in-line is to prevent replacing an ALREADY
+        # solved and replaced letter. By joining a letter solution to the decryption, we avoid this risk.
         wrong_index = 0  # Track index of current letter
         counter = 0  # Track how many letters were replaced
         for letter in range(0, len(self.encrypted)):
@@ -759,26 +776,108 @@ def change_page(new_page, *dt):
 class ScreenFrame(Widget):
     carousel = ObjectProperty(None)
 
+
 class CryptogramScreen(Widget):
     encrypted_text = ObjectProperty(None)
     decrypted_text = ObjectProperty(None)
     start_decryption = ObjectProperty(None)
+    decryption_cypher = ObjectProperty(None)
+    default_encrypted = ObjectProperty(None)
+    default_decrypted = ObjectProperty(None)
 
     def update_text(self, *kwargs):
         self.decrypted_text.text = kwargs[0]
+
+    # Add buttons to decryption cypher
+    def add_cypher_row(self, enc_char, dec_char, *kwargs):
+        self.decryption_cypher.add_widget(enc_char)
+        self.decryption_cypher.add_widget(dec_char)
+
+    # TODO: Call this whenever the final cypher is updated
+    # Update button text in decryption cypher
+    def update_decryption_possibilities(self, ind, possibilities, *kwargs):
+        # Get buttons in row 
+        enc_btn = self.buttons[ind*2] 
+        dec_btn = self.buttons[(ind*2)+1]
+
+        # Only one possible solution for encrypted letter
+        if len(possibilities) == 1:
+            dec_btn.text = possibilities[0]
+
+            # Change solved button colors to green
+            if ind % 2:
+                enc_btn.background_color=(0, 0.75, 0, 1)
+                dec_btn.background_color=(0, 0.75, 0, 1)
+            else:
+                # Change solved button colors to green
+                enc_btn.background_color=(0, 1, 0, 1)
+                dec_btn.background_color=(0, 1, 0, 1)
+        # Not yet solved
+        else:
+            poss_solutions = ", ".join((possibilities))
+            dec_btn.text = poss_solutions
+
+    def create_cypher(self, btns, dec_cypher):
+        inc = 0
+        for enc_letter in dec_cypher:
+            # Change default button text to an encrypted letter
+            if inc == 0:
+                self.default_encrypted.text = enc_letter
+            # Customize and add buttons
+            else:
+                enc_btn = btns[inc*2]  # Adjust inc to keep it within bounds of the btns list length
+                dec_btn = btns[(inc*2)+1]
+
+                enc_btn.text = enc_letter
+                dec_btn.text = "?"
+
+                enc_btn.size_hint_min_y=(enc_btn.font_size+30)
+                dec_btn.size_hint_min_y=(dec_btn.font_size+30)
+
+                # Alternate button colors from default every other line
+                if inc % 2:
+                    enc_btn.background_color=(0.75, 0.75, 0.75, 1)
+                    dec_btn.background_color=(0.75, 0.75, 0.75, 1)
+
+                # Add buttons to decryption cypher
+                Clock.schedule_once(partial(self.add_cypher_row, enc_btn, dec_btn))
+                time.sleep(0.5)
+
+            # Increment count
+            inc = inc + 1
+
+        # Wait until all entries are added to decryption cypher to begin processing
+        Thread(target=self.encoded.parse).start()
 
     def callback(self, instance):
         # Set initial decrypted text to encrypted text
         self.update_text(self.encrypted_text.text)
 
-        # Set path to cryptogram file and open
+        # Set path to cryptogram file
         self.encoded.file = self.path
-        Thread(target=self.encoded.parse).start()
+
+        # Initialize decryption cypher
+        dec_cypher = sorted(set(self.encrypted_text.text))
+
+        # Remove empty space from decryption cypher
+        if dec_cypher[0] == ' ':
+            dec_cypher.remove(dec_cypher[0])
+
+        # Initialize all buttons necessary in main thread
+        i = 0
+
+        while i < len(dec_cypher)-1:  # len(dec_cypher)-1 to account for the two existing default buttons 
+            self.buttons.append(Button())
+            self.buttons.append(Button())
+            i= i+1
+
+        # Add button widgets to decryption cypher in new thread
+        Thread(target=partial(self.create_cypher, self.buttons, dec_cypher)).start()
 
         # N.B. The parsing needs to happen on a secondary thread, otherwise
         # the parsing will happen on the main thread and will block the
-        # ecnrypted text from updating until AFTER the processing completes. The
-        # Thread target has to be a function/method, NOT a function/method CALL.
+        # encrypted text/decryption cypher from updating until AFTER the processing completes. 
+        # The Thread target has to be a function/method, NOT a function/method CALL.
         # That means that the target needs to look like this:
         # Thread(target=functionName).start()
         # NOT like this:
@@ -788,12 +887,24 @@ class CryptogramScreen(Widget):
         # like this:
         # Thread(target=partial(functionName, passed_variables).start()
 
+
+
+        # TODO: Show decrypted text in new window
+        # TODO: Only run decryption once to prevent additional parsing unless file path changes
+
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         # Final variables
         self.path = None
         self.encoded = Cryptogram()
+
+        self.buttons = []
+
+        # Add default buttons to self.buttons list
+        self.buttons.append(self.default_encrypted)
+        self.buttons.append(self.default_decrypted)
 
         self.start_decryption.bind(on_press=self.callback)
 
@@ -824,7 +935,7 @@ class CryptogramSolverApp(App):
 
         return self.frame    
 
-
+# TODO: Show decryption progress bar. Show cypher and update as letters are solved?
 if __name__ == '__main__':
     # menu = Menu(
     #     "Crypto-Solver!", ((1, "Choose an encrypted file."), (2, "Decrypt cryptogram.")))
@@ -832,5 +943,3 @@ if __name__ == '__main__':
     # menu.destroy()
     app = CryptogramSolverApp()
     app.run()
-
-    # TODO: Update decrypted text with each newly decrypted letter, then again after the partially_solved() function
