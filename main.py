@@ -763,7 +763,6 @@ class ScreenFrame(Widget):
     carousel = ObjectProperty(None)
 
 
-# TODO: Add default buttons to self.buttons list and adjust all index references
 class CryptogramScreen(Widget):
     encrypted_text = ObjectProperty(None)
     decrypted_text = ObjectProperty(None)
@@ -788,8 +787,8 @@ class CryptogramScreen(Widget):
                 self.default_encrypted.text = enc_letter
             # Customize and add buttons
             else:
-                enc_btn = btns[(inc-1)*2]  # Adjust inc to keep it within bounds of the btns list length
-                dec_btn = btns[(inc*2)-1]
+                enc_btn = btns[inc*2]  # Adjust inc to keep it within bounds of the btns list length
+                dec_btn = btns[(inc*2)+1]
 
                 enc_btn.text = enc_letter
                 dec_btn.text = "?"
@@ -827,17 +826,15 @@ class CryptogramScreen(Widget):
             dec_cypher.remove(dec_cypher[0])
 
         # Initialize all buttons necessary in main thread
-        buttons = []
-
         i = 0
 
         while i < len(dec_cypher)-1:  # len(dec_cypher)-1 to account for the two existing default buttons 
-            buttons.append(Button())
-            buttons.append(Button())
+            self.buttons.append(Button())
+            self.buttons.append(Button())
             i= i+1
 
         # Add button widgets to decryption cypher in new thread
-        Thread(target=partial(self.create_cypher, buttons, dec_cypher)).start()
+        Thread(target=partial(self.create_cypher, self.buttons, dec_cypher)).start()
 
         # N.B. The parsing needs to happen on a secondary thread, otherwise
         # the parsing will happen on the main thread and will block the
@@ -864,6 +861,12 @@ class CryptogramScreen(Widget):
         # Final variables
         self.path = None
         self.encoded = Cryptogram()
+
+        self.buttons = []
+
+        # Add default buttons to self.buttons list
+        self.buttons.append(self.default_encrypted)
+        self.buttons.append(self.default_decrypted)
 
         self.start_decryption.bind(on_press=self.callback)
 
