@@ -762,12 +762,15 @@ def change_page(new_page, *dt):
 class ScreenFrame(Widget):
     carousel = ObjectProperty(None)
 
+
+# TODO: Add default buttons to self.buttons list and adjust all index references
 class CryptogramScreen(Widget):
     encrypted_text = ObjectProperty(None)
     decrypted_text = ObjectProperty(None)
     start_decryption = ObjectProperty(None)
     decryption_cypher = ObjectProperty(None)
     default_encrypted = ObjectProperty(None)
+    default_decrypted = ObjectProperty(None)
 
     def update_text(self, *kwargs):
         self.decrypted_text.text = kwargs[0]

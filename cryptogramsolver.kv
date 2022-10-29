@@ -56,6 +56,7 @@
     start_decryption: start
     decryption_cypher: cypher
     default_encrypted: def_encrypted
+    default_decrypted: def_decrypted
 
     GridLayout:
         cols: 2
@@ -174,6 +175,7 @@
                     size_hint_min_y: self.font_size + 30
 
                 Button:
+                    id: def_decrypted
                     text: "?"
                     size_hint_min_y: self.font_size + 30
 
