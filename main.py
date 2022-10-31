@@ -339,6 +339,9 @@ class Cryptogram():
         for count in range (0, len(self.cyphers)):
             self.final_cypher = common_keys(self.cyphers[count].cypher, self.final_cypher.cypher)
 
+        # Set decrypted to encrypted BEFORE simplify_decryption to prevent undoing progress in update_dec_text
+        self.decrypted = self.encrypted
+
         # Simplify common decrypted values
         self.simplify_decryption()
 
@@ -353,10 +356,26 @@ class Cryptogram():
         # Get list of encrypted characters from self.final_cypher.cypher
         encrypted_chars = [entry for entry in self.final_cypher.cypher if len(self.final_cypher.cypher[entry])]
     
+        # By checking if a letter is solved BEFORE updating the button, it allows the replacement of that character to happen
+        # before sending any GUI update signals. This lets the button AND the decrypted text update simultaneously.
         for item in encrypted_chars:
+            # Letter is solved
+            if len(self.final_cypher.cypher[item])==1:
+                # Replace encrypted character with solution
+                self.update_dec_text(item, self.final_cypher.cypher[item])
+
+                # Update decrypted text in Kivy window
+                Clock.schedule_once(partial(cryptogram_page.update_text, self.decrypted))
             # Update buttons in decryption cypher
             Clock.schedule_once(partial(cryptogram_page.update_decryption_possibilities, encrypted_chars.index(item), self.final_cypher.cypher[item]))
             time.sleep(1)
+
+    # Update decryption with each cypher update
+    def update_dec_text(self, enc_char, solution):
+        for letter in range(0, len(self.encrypted)):
+            if self.encrypted[letter] == enc_char:
+                self.decrypted = self.decrypted[:letter] + solution[0] + self.decrypted[letter+1:]
+
 
     # Update letter count for file
     def count(self, word):
