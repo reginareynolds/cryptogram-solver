@@ -144,8 +144,10 @@
             height: self.minimum_height
 
             Label:
-                text: "Encrypted character"
+                text: "Encrypted"
                 size_hint_min_y: self.font_size + 30
+                size_hint_x: 0.4
+
             Label:
                 text: "Possible decryptions"
                 size_hint_min_y: self.font_size + 30
@@ -173,6 +175,7 @@
                     id: def_encrypted
                     text: "?"
                     size_hint_min_y: self.font_size + 30
+                    size_hint_x: 0.4
 
                 Button:
                     id: def_decrypted

@@ -834,6 +834,8 @@ class CryptogramScreen(Widget):
                 enc_btn.size_hint_min_y=(enc_btn.font_size+30)
                 dec_btn.size_hint_min_y=(dec_btn.font_size+30)
 
+                enc_btn.size_hint_x = 0.4
+
                 # Alternate button colors from default every other line
                 if inc % 2:
                     enc_btn.background_color=(0.75, 0.75, 0.75, 1)
