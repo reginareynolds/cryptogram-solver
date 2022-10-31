@@ -349,34 +349,6 @@ class Cryptogram():
         self.decrypt()
         # TODO: Determine how many times to rerun decrypt function
 
-    # Update decryption cypher in Kivy screen
-    def cypher_update(self, *kwargs):
-        cryptogram_page = app.frame.carousel.slides[1]
-    
-        # Get list of encrypted characters from self.final_cypher.cypher
-        encrypted_chars = [entry for entry in self.final_cypher.cypher if len(self.final_cypher.cypher[entry])]
-    
-        # By checking if a letter is solved BEFORE updating the button, it allows the replacement of that character to happen
-        # before sending any GUI update signals. This lets the button AND the decrypted text update simultaneously.
-        for item in encrypted_chars:
-            # Letter is solved
-            if len(self.final_cypher.cypher[item])==1:
-                # Replace encrypted character with solution
-                self.update_dec_text(item, self.final_cypher.cypher[item])
-
-                # Update decrypted text in Kivy window
-                Clock.schedule_once(partial(cryptogram_page.update_text, self.decrypted))
-            # Update buttons in decryption cypher
-            Clock.schedule_once(partial(cryptogram_page.update_decryption_possibilities, encrypted_chars.index(item), self.final_cypher.cypher[item]))
-            time.sleep(1)
-
-    # Update decryption with each cypher update
-    def update_dec_text(self, enc_char, solution):
-        for letter in range(0, len(self.encrypted)):
-            if self.encrypted[letter] == enc_char:
-                self.decrypted = self.decrypted[:letter] + solution[0] + self.decrypted[letter+1:]
-
-
     # Update letter count for file
     def count(self, word):
         self.letter_count.update(word)
@@ -412,6 +384,33 @@ class Cryptogram():
         for letter in self.final_cypher.cypher:
             if len(self.final_cypher.cypher[letter]) == 1:
                 list.append([letter, self.final_cypher.cypher[letter][0]])
+
+    # Update decryption cypher in Kivy screen
+    def cypher_update(self, *kwargs):
+        cryptogram_page = app.frame.carousel.slides[1]
+    
+        # Get list of encrypted characters from self.final_cypher.cypher
+        encrypted_chars = [entry for entry in self.final_cypher.cypher if len(self.final_cypher.cypher[entry])]
+    
+        # By checking if a letter is solved BEFORE updating the button, it allows the replacement of that character to happen
+        # before sending any GUI update signals. This lets the button AND the decrypted text update simultaneously.
+        for item in encrypted_chars:
+            # Letter is solved
+            if len(self.final_cypher.cypher[item])==1:
+                # Replace encrypted character with solution
+                self.update_dec_text(item, self.final_cypher.cypher[item])
+
+                # Update decrypted text in Kivy window
+                Clock.schedule_once(partial(cryptogram_page.update_text, self.decrypted))
+            # Update buttons in decryption cypher
+            Clock.schedule_once(partial(cryptogram_page.update_decryption_possibilities, encrypted_chars.index(item), self.final_cypher.cypher[item]))
+            time.sleep(1)
+
+    # Update decryption with each cypher update
+    def update_dec_text(self, enc_char, solution):
+        for letter in range(0, len(self.encrypted)):
+            if self.encrypted[letter] == enc_char:
+                self.decrypted = self.decrypted[:letter] + solution[0] + self.decrypted[letter+1:]
 
     def decrypt(self):
         count = self.replace()
@@ -517,14 +516,6 @@ class Cryptogram():
                 self.final_cypher = common_keys(cypher.cypher, self.final_cypher.cypher)
                 self.simplify_decryption()
 # TODO: Potentially remove all keys that are not solved, then search for dictionary matches with solved letters in correct spots and add corresponding new possibilities to unsolved letters
-    
-    # Determine if decryption should be rerun
-    def rerun_check(self):
-        # Dictionary length changed, decryption should be rerun
-        if sum([len(val) for val in self.final_cypher.cypher.values()]) < self.dict_length:
-            self.decrypt()
-        else:
-            self.user_choice()
 
     # Identify potential key words and prefixes/suffixes
     def find_key_words(self):
@@ -560,30 +551,6 @@ class Cryptogram():
                     if len(self.final_cypher.cypher[first_letter]) == 1:
                         if len(self.final_cypher.cypher[second_letter]) != 1:
                             pass
-    
-    def word_groups(self, wrong, words, lines):
-        for word in range(0, len(wrong)):
-            holder = []
-            for group in lines:
-                if group[word] not in holder:
-                    holder.append(group[word])
-            words.append(holder)
-
-    # Find words containing uncertain letters
-    def wrong_words(self, wrong_list):
-        # Find start and end of word containing unsolved letter index
-        for word_index in range(0, len(self.word_indices)):
-            applicable = []
-            
-            # Group incorrect indices by containing word
-            for index in self.wrong_indices:
-                if index > self.word_indices[word_index] and index < self.word_indices[word_index + 1]:
-                    applicable.append(index)
-                    
-            # Check if word contained incorrect indices
-            if len(applicable):
-                if applicable not in wrong_list:
-                    wrong_list.append(((self.word_indices[word_index], self.word_indices[word_index + 1]), applicable))
 
     # Remove uncertain letter possibilities that result in non-words
     def remove_non_words(self):
@@ -630,6 +597,30 @@ class Cryptogram():
 
         self.rerun_check()
 
+    # Find words containing uncertain letters
+    def wrong_words(self, wrong_list):
+        # Find start and end of word containing unsolved letter index
+        for word_index in range(0, len(self.word_indices)):
+            applicable = []
+            
+            # Group incorrect indices by containing word
+            for index in self.wrong_indices:
+                if index > self.word_indices[word_index] and index < self.word_indices[word_index + 1]:
+                    applicable.append(index)
+                    
+            # Check if word contained incorrect indices
+            if len(applicable):
+                if applicable not in wrong_list:
+                    wrong_list.append(((self.word_indices[word_index], self.word_indices[word_index + 1]), applicable))
+
+    # Determine if decryption should be rerun
+    def rerun_check(self):
+        # Dictionary length changed, decryption should be rerun
+        if sum([len(val) for val in self.final_cypher.cypher.values()]) < self.dict_length:
+            self.decrypt()
+        else:
+            pass
+            # self.user_choice()
 
     # TODO: Finalize final cypher using user selected words. Show final decryption in place of decrypt button. Escape decryption loop
     def user_choice(self):
@@ -748,6 +739,13 @@ class Cryptogram():
 
             # TODO: Remove fully decrypted words that don't show up in the dictionary
 
+    def word_groups(self, wrong, words, lines):
+        for word in range(0, len(wrong)):
+            holder = []
+            for group in lines:
+                if group[word] not in holder:
+                    holder.append(group[word])
+            words.append(holder)
 
 
 class FileSelect(Popup):
