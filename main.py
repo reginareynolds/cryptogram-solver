@@ -339,8 +339,6 @@ class Cryptogram():
         for count in range (0, len(self.cyphers)):
             self.final_cypher = common_keys(self.cyphers[count].cypher, self.final_cypher.cypher)
 
-        self.cypher_update()
-
         # Simplify common decrypted values
         self.simplify_decryption()
 
@@ -387,6 +385,8 @@ class Cryptogram():
         self.solved_letters(rerun)
         if len(rerun) > len(solved):
             self.simplify_decryption()
+        else:
+            self.cypher_update()
 
     # Find letters with only one potential decryption for encrypted value, which must be correct
     def solved_letters(self, list):
