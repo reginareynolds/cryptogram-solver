@@ -157,6 +157,7 @@ class Cryptogram():
         self.message_length = None
         self.wrong_indices = []  # List of all wrong indices, regardless of encrypted letter
         self.word_indices = []  # Track beginning and end indices of words        
+        self.counter = 0  # Class variable version of previously decrypt function local count variable
 
     def parse(self):
         # Parse encrypted file
@@ -268,6 +269,9 @@ class Cryptogram():
 
     # Update decryption cypher in Kivy screen
     def cypher_update(self, *kwargs):
+        # Reset counter
+        self.counter = 0
+
         cryptogram_page = app.frame.carousel.slides[1]
     
         # Get list of encrypted characters from self.final_cypher.cypher
@@ -292,9 +296,9 @@ class Cryptogram():
         for letter in range(0, len(self.encrypted)):
             if self.encrypted[letter] == enc_char:
                 self.decrypted = self.decrypted[:letter] + solution[0] + self.decrypted[letter+1:]
+                self.counter = self.counter + 1
 
     def decrypt(self):
-        count = self.replace()
         print("encrypted")
         print(self.encrypted)
         print("decrypted")
@@ -314,7 +318,7 @@ class Cryptogram():
         # Case one: self.decrypted is identical to self.encrypted, meaning no letters were able to be replaced
         # Case two: self.decrypted is not identical to self.encrypted, but count is not equal to self.message_length, meaning not all letters were replaced
         # Case three: self. decrypted is not identical to self.encrypted, and count is equal to self.message_length, meaning all letters were replaced
-        if count != self.message_length:
+        if self.counter != self.message_length:
             self.partially_solved()
             # self.find_key_words()
             self.remove_non_words()
@@ -363,6 +367,7 @@ class Cryptogram():
 
     # Takes partially solved words and searches the dictionary for matching patterns that specifically have the solved letters in those spots
     def partially_solved(self):
+        # TODO: Remove a fully solved word from self.words. There is no need to continue iterating through words that are already solved.
         for word in self.words:
             index = 0
             correct_indices = []  # Holds solved letters and their position in the word
@@ -383,6 +388,7 @@ class Cryptogram():
                 # Find matching dictionary patterns
                 for dictionary_match in dictionary_matches:
                     for correct_index in correct_indices:
+                        # Note what words in the dictionary matched the word pattern but DID NOT have fully solved letters in the correct spot
                         if dictionary_match[correct_index[0]] != correct_index[1][0]:
                             wrong_matches.append(dictionary_match)
                             break
