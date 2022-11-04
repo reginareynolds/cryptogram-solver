@@ -328,25 +328,18 @@ class Cryptogram():
     def replace(self, incorrect_letters = None):
         solved = []
         self.solved_letters(solved)
-        self.decrypted = ''
         self.wrong_indices = []
         self.word_indices = []
 
-        # N.B. The reason that solved letters are not replaced in-line is to prevent replacing an ALREADY
-        # solved and replaced letter. By joining a letter solution to the decryption, we avoid this risk.
         wrong_index = 0  # Track index of current letter
         for letter in range(0, len(self.encrypted)):
             flag = True
             for value in solved:
-                # If encrypted letter matches a solved letter, replace it with solution
+                # If encrypted letter matches a solved letter, break
                 if self.encrypted[letter] == value[0]:
-                    self.decrypted = ''.join((self.decrypted, value[1]))
                     flag = False
-                    counter = counter + 1
                     break
             if flag:
-                self.decrypted = ''.join(
-                    (self.decrypted, self.encrypted[letter]))
                 if incorrect_letters:
                     # Record index of uncertain letters
                     if self.encrypted[letter].isalpha():
@@ -357,10 +350,10 @@ class Cryptogram():
                         self.word_indices.append(wrong_index)
             wrong_index = wrong_index + 1
 
-        # Update decrypted text in Kivy window
-        cryptogram_page = app.frame.carousel.slides[1]
-        Clock.schedule_once(partial(cryptogram_page.update_text, self.decrypted))
-        time.sleep(3)  # Keeps iterations of decryption visible instead of iterating instantaneously 
+        # # Update decrypted text in Kivy window
+        # cryptogram_page = app.frame.carousel.slides[1]
+        # Clock.schedule_once(partial(cryptogram_page.update_text, self.decrypted))
+        # time.sleep(3)  # Keeps iterations of decryption visible instead of iterating instantaneously 
 
 
     # Takes partially solved words and searches the dictionary for matching patterns that specifically have the solved letters in those spots
