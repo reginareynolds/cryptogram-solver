@@ -644,7 +644,8 @@ class FileSelect(Popup):
             # Set cryptogram screen encrypted_text to file contents
             cryptogram_page = app.frame.carousel.slides[1]
             cryptogram_page.path = file.name
-            cryptogram_page.encrypted_text.text = file.read()
+            encryption = file.read()
+            cryptogram_page.encrypted_text.text = encryption.strip().upper()
 
         # Close popup
         self.dismiss()
@@ -843,9 +844,5 @@ class CryptogramSolverApp(App):
 
 # TODO: Show decryption progress bar. Show cypher and update as letters are solved?
 if __name__ == '__main__':
-    # menu = Menu(
-    #     "Crypto-Solver!", ((1, "Choose an encrypted file."), (2, "Decrypt cryptogram.")))
-    # menu.mainloop()
-    # menu.destroy()
     app = CryptogramSolverApp()
     app.run()
