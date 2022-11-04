@@ -335,7 +335,6 @@ class Cryptogram():
         # N.B. The reason that solved letters are not replaced in-line is to prevent replacing an ALREADY
         # solved and replaced letter. By joining a letter solution to the decryption, we avoid this risk.
         wrong_index = 0  # Track index of current letter
-        counter = 0  # Track how many letters were replaced
         for letter in range(0, len(self.encrypted)):
             flag = True
             for value in solved:
@@ -363,7 +362,6 @@ class Cryptogram():
         Clock.schedule_once(partial(cryptogram_page.update_text, self.decrypted))
         time.sleep(3)  # Keeps iterations of decryption visible instead of iterating instantaneously 
 
-        return(counter)
 
     # Takes partially solved words and searches the dictionary for matching patterns that specifically have the solved letters in those spots
     def partially_solved(self):
