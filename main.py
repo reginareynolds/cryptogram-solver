@@ -162,6 +162,7 @@ class Cryptogram():
         self.word_indices = []  # Track beginning and end indices of words        
         self.counter = 0  # Class variable version of previously decrypt function local count variable
         self.solved_tracker = []#(encrypted letter, True if solved, solution letter)]  # List the same length as the number of characters in the encrypted message. Each item in list is either True for a solved character or False for an unsolved letter
+
     def parse(self):
         # Parse encrypted file
         with open(self.file) as contents:
@@ -227,7 +228,8 @@ class Cryptogram():
         # Set decrypted to encrypted BEFORE simplify_decryption to prevent undoing progress in update_dec_text
         self.decrypted = self.encrypted
 
-        self.test()
+        # Set list to correct length
+        self.solved_tracker = [False] * len(self.encrypted)
 
         # Simplify common decrypted values
         self.simplify_decryption()
@@ -332,10 +334,6 @@ class Cryptogram():
             self.remove_non_words()
             # self.user_choice()
             # self.rerun_check()
-
-    def test(self):
-        for letter in range(0, len(self.encrypted)):
-            self.solved_tracker.append(False)
 
     def find_wrong_indices(self, incorrect_letters):
         self.wrong_indices = []
