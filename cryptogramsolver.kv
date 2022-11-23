@@ -220,3 +220,38 @@
                 name: "2"
 
                 disabled: True  # Disabled by default until a file is selected
+
+<UncertainLetters>:
+    size_hint_x: 0.8
+    size_hint_y: 0.8
+    title: "Uncertain letters"
+    btn_selection: button_selection
+
+    RelativeLayout:
+        ScrollView:
+            do_scroll_x: False
+            effect_cls: "ScrollEffect"
+            GridLayout:
+                id: button_selection
+                cols: 1
+
+                Label:
+                    font_size: 20
+
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+
+                    # size_hint_x: None
+                    # width: root.width*2/3
+                    center_x: root.width/2
+                    text: "Some encrypted letters could not be decrypted with certainty. The following words are possible decryptions."
+
+<Possibility@Label>:
+    font_size: 20
+
+    size_hint_y: None
+    text_size: self.width, None
+    height: self.texture_size[1]
+
+    center_x: root.width/2    

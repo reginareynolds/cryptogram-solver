@@ -18,6 +18,8 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.properties import ObjectProperty
 from kivy.uix.button import Button
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.widget import Widget
 
@@ -665,6 +667,16 @@ class FileSelect(Popup):
         for child in self.btn_selection.children:
             child.bind(on_press=self.callback)
 
+class Possibility(Label):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+# Uncertain letters popup
+class UncertainLetters(Popup):
+    btn_selection = ObjectProperty(None)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 def change_page(new_page, *dt):
     """Change slide displayed in carousel"""
     app.frame.carousel.load_slide(app.frame.carousel.slides[new_page])
@@ -799,6 +811,9 @@ class CryptogramScreen(Widget):
         self.encoded = Cryptogram()
 
         self.buttons = []
+
+        # Initialize popup
+        self.popup = UncertainLetters()
 
         # Add default buttons to self.buttons list
         self.buttons.append(self.default_encrypted)
