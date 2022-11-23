@@ -161,7 +161,7 @@ class Cryptogram():
         self.wrong_indices = []  # List of all wrong indices, regardless of encrypted letter
         self.word_indices = []  # Track beginning and end indices of words        
         self.counter = 0  # Class variable version of previously decrypt function local count variable
-
+        self.solved_tracker = []#(encrypted letter, True if solved, solution letter)]  # List the same length as the number of characters in the encrypted message. Each item in list is either True for a solved character or False for an unsolved letter
     def parse(self):
         # Parse encrypted file
         with open(self.file) as contents:
@@ -226,6 +226,8 @@ class Cryptogram():
 
         # Set decrypted to encrypted BEFORE simplify_decryption to prevent undoing progress in update_dec_text
         self.decrypted = self.encrypted
+
+        self.test()
 
         # Simplify common decrypted values
         self.simplify_decryption()
@@ -300,6 +302,7 @@ class Cryptogram():
             if self.encrypted[letter] == enc_char:
                 self.decrypted = self.decrypted[:letter] + solution[0] + self.decrypted[letter+1:]
                 self.counter = self.counter + 1
+                self.solved_tracker[letter] = True
 
     def decrypt(self):
         print("encrypted")
@@ -330,32 +333,25 @@ class Cryptogram():
             # self.user_choice()
             # self.rerun_check()
 
-    def replace(self, incorrect_letters = None):
-        solved = []
-        self.solved_letters(solved)
+    def test(self):
+        for letter in range(0, len(self.encrypted)):
+            self.solved_tracker.append(False)
+
+    def find_wrong_indices(self, incorrect_letters):
         self.wrong_indices = []
         self.word_indices = []
 
-        wrong_index = 0  # Track index of current letter
-        for letter in range(0, len(self.encrypted)):
-            flag = True
-            for value in solved:
-                # If encrypted letter matches a solved letter, break
-                if self.encrypted[letter] == value[0]:
-                    flag = False
-                    break
-            if flag:
-                if incorrect_letters:
-                    # Record index of uncertain letters
-                    if self.encrypted[letter].isalpha():
-                        incorrect_letters.cypher[self.encrypted[letter]].append(wrong_index)
-                        self.wrong_indices.append(wrong_index)
-                    # Record index of space between words
-                    if self.encrypted[letter].isspace():
-                        self.word_indices.append(wrong_index)
-            wrong_index = wrong_index + 1
+        for letter in range(0, len(self.solved_tracker)):
+            if not self.solved_tracker[letter]:
+                # Record index of uncertain letters
+                if self.encrypted[letter].isalpha():
+                    incorrect_letters.cypher[self.encrypted[letter]].append(letter)
+                    self.wrong_indices.append(letter)
+                # Record index of space between words
+                if self.encrypted[letter].isspace():
+                    self.word_indices.append(letter)
 
-        # # Update decrypted text in Kivy window
+        # # TODO: Update decrypted text in Kivy window?
         # cryptogram_page = app.frame.carousel.slides[1]
         # Clock.schedule_once(partial(cryptogram_page.update_text, self.decrypted))
         # time.sleep(3)  # Keeps iterations of decryption visible instead of iterating instantaneously 
@@ -502,15 +498,15 @@ class Cryptogram():
         if sum([len(val) for val in self.final_cypher.cypher.values()]) < self.dict_length:
             self.decrypt()
         else:
-            pass
-            # self.user_choice()
+            self.user_choice()
 
     # TODO: Finalize final cypher using user selected words. Show final decryption in place of decrypt button. Escape decryption loop
+    # TODO: This should only be called if: 1. No more letters can be solved using other methods, and 2. The message is NOT fully solved.
     def user_choice(self):
         print("user_choice caller name: ", inspect.stack()[1][3])
 
         incorrect_letters = Cypher()  # Access using [x], where x is the encrypted, unsolved letter. Returns indices containing x
-        self.replace(incorrect_letters)
+        self.find_wrong_indices(incorrect_letters)
 
         unsolved_letters = []  # List of unsolved letters and their possible decryptions
         for letter in self.final_cypher.cypher:
