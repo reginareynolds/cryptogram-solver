@@ -325,7 +325,7 @@ class Cryptogram():
             # self.find_key_words()
             self.remove_non_words()
             self.user_choice()
-            self.rerun_check()
+            # self.rerun_check()
 
     def replace(self, incorrect_letters = None):
         solved = []
@@ -553,7 +553,10 @@ class Cryptogram():
 # TODO: Remove any decryptions where uncertain letters are translated to the same letter
         # Check if there are any partially decrypted words
         if len(word_groups):
-            print("Some encrypted letters could not be decrypted with certainty. The following words are possible decryptions.")
+            cryptogram_page = app.frame.carousel.slides[1]
+
+            Clock.schedule_once(partial(cryptogram_page.add_uncertain_letters, word_groups, total_possibilities))
+            time.sleep(10)
             for group in word_groups:
                 to_print = ''
                 for word in group:
@@ -617,7 +620,7 @@ class Cryptogram():
             
             # Update final cypher based on user selections
 
-            # TODO: Remove fully decrypted words that don't show up in the dictionary
+            # self.rerun_check()  # TODO: Run this after a user makes a selection, otherwise it keeps rerunning self.decrypt, which reruns self.user_choice endlessly
 
     def word_groups(self, wrong, words, lines):
         for word in range(0, len(wrong)):
@@ -692,6 +695,37 @@ class CryptogramScreen(Widget):
     decryption_cypher = ObjectProperty(None)
     default_encrypted = ObjectProperty(None)
     default_decrypted = ObjectProperty(None)
+
+    def add_uncertain_letters(self, groups, possibilities, *kwargs):
+        start = time.time()
+        # Add uncertain words, one group per row
+        for group in groups:
+            row = GridLayout(cols=len(group))  # Row to add to UncertainLetters popup
+
+            for word in group:
+                btn = Button(text=word)
+                # TODO: Bind button clicks to user selection
+                row.add_widget(btn)
+            self.popup.btn_selection.add_widget(row)
+
+        # Add informational text
+        line_one = Possibility()
+        line_two = Possibility()
+
+        line_one.text = "Here are the possible complete decryptions of the cryptogram."
+        line_two.text = "Possible decryptions:"
+
+        # Add possible full decryptions
+        for possible in possibilities:
+            poss = Possibility()
+            poss.text=''.join(possible)
+            self.popup.btn_selection.add_widget(poss)
+
+        # Open popup now that new information is added
+        self.popup.open()
+
+        end=time.time()
+        print(end-start)
 
     def update_text(self, *kwargs):
         self.decrypted_text.text = kwargs[0]
