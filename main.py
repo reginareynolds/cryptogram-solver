@@ -794,6 +794,9 @@ class CryptogramScreen(Widget):
         Thread(target=self.encoded.parse).start()
 
     def callback(self, instance):
+        # Disable decrypt button
+        self.start_decryption.disabled = True
+
         # Set initial decrypted text to encrypted text
         self.update_text(self.encrypted_text.text)
 
