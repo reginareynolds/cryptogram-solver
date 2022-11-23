@@ -4,6 +4,7 @@ import os
 import time
 from functools import partial
 from threading import Thread
+import inspect
 
 # from wordfreq import word_frequency
 
@@ -321,10 +322,12 @@ class Cryptogram():
         # Case two: self.decrypted is not identical to self.encrypted, but count is not equal to self.message_length, meaning not all letters were replaced
         # Case three: self. decrypted is not identical to self.encrypted, and count is equal to self.message_length, meaning all letters were replaced
         if self.counter != self.message_length:
+            print("decrypt caller name: ", inspect.stack()[1][3])
+
             self.partially_solved()
             # self.find_key_words()
             self.remove_non_words()
-            self.user_choice()
+            # self.user_choice()
             # self.rerun_check()
 
     def replace(self, incorrect_letters = None):
@@ -504,6 +507,8 @@ class Cryptogram():
 
     # TODO: Finalize final cypher using user selected words. Show final decryption in place of decrypt button. Escape decryption loop
     def user_choice(self):
+        print("user_choice caller name: ", inspect.stack()[1][3])
+
         incorrect_letters = Cypher()  # Access using [x], where x is the encrypted, unsolved letter. Returns indices containing x
         self.replace(incorrect_letters)
 
@@ -697,6 +702,7 @@ class CryptogramScreen(Widget):
     default_decrypted = ObjectProperty(None)
 
     def add_uncertain_letters(self, groups, possibilities, *kwargs):
+        print("caller name: ", inspect.stack()[1][3])
         start = time.time()
         # Add uncertain words, one group per row
         for group in groups:
@@ -704,7 +710,7 @@ class CryptogramScreen(Widget):
 
             for word in group:
                 btn = Button(text=word)
-                # TODO: Bind button clicks to user selection
+                # TODO: Bind button clicks to user selection (using name property?)
                 row.add_widget(btn)
             self.popup.btn_selection.add_widget(row)
 
