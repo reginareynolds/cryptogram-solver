@@ -676,9 +676,31 @@ class Possibility(Label):
 # Uncertain letters popup
 class UncertainLetters(Popup):
     btn_selection = ObjectProperty(None)
+    poss_decryptions = ObjectProperty(None)
+
+    # Register user selection
+    def callback(self, instance):
+        print(instance)
+        pass
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+# class Letters(Widget):
+#     btns = ObjectProperty(None)
+
+#     def callback(self, instance):
+#         if instance.name:
+#             self.parent.parent.load_previous()
+#         else:
+#             self.parent.parent.load_next()
+
+#     def __init__(self, **kwargs):
+#         super().__init__(**kwargs)
+
+#         self.back.bind(on_press=self.callback)
+#         self.next.bind(on_press=self.callback)
+
 def change_page(new_page, *dt):
     """Change slide displayed in carousel"""
     app.frame.carousel.load_slide(app.frame.carousel.slides[new_page])
@@ -701,25 +723,22 @@ class CryptogramScreen(Widget):
         # Add uncertain words, one group per row
         for group in groups:
             row = GridLayout(cols=len(group))  # Row to add to UncertainLetters popup
-
+            # TODO: Give row an ID of the unsolved encrypted letter
             for word in group:
                 btn = Button(text=word)
+                btn.name = btn.text
+                btn.bind(on_press=self.popup.callback)
                 # TODO: Bind button clicks to user selection (using name property?)
                 row.add_widget(btn)
+            row.height = row.minimum_height
+            row.padding = 5
             self.popup.btn_selection.add_widget(row)
-
-        # Add informational text
-        line_one = Possibility()
-        line_two = Possibility()
-
-        line_one.text = "Here are the possible complete decryptions of the cryptogram."
-        line_two.text = "Possible decryptions:"
 
         # Add possible full decryptions
         for possible in possibilities:
             poss = Possibility()
             poss.text=''.join(possible)
-            self.popup.btn_selection.add_widget(poss)
+            self.popup.poss_decryptions.add_widget(poss)
 
         # Open popup now that new information is added
         self.popup.open()
