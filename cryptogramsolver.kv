@@ -228,6 +228,16 @@
             GridLayout:
                 cols: 1
                 padding: 10
+                canvas.before:
+                    Color:
+                        rgba: 0, 1, 0, 1
+                    Rectangle:
+                        # self here refers to the widget i.e FloatLayout
+                        pos: self.pos
+                        size: self.size    
+                size_hint_y: None
+
+                height: self.minimum_height
 
                 Possibility:
                     text: "Some encrypted letters could not be decrypted with certainty. The following words are possible decryptions."
@@ -235,6 +245,16 @@
                 GridLayout:
                     id: button_selection
                     cols: 1
+                    size_hint_y: None
+
+                    height: self.minimum_height
+                    canvas.before:
+                        Color:
+                            rgba: 0, 1, 1, 1
+                        Rectangle:
+                            # self here refers to the widget i.e FloatLayout
+                            pos: self.pos
+                            size: self.size                    
 
                 # Add informational text
                 Possibility:
@@ -247,7 +267,20 @@
                     id: decryptions
                     cols: 1
 
-                    text: "Some encrypted letters could not be decrypted with certainty. The following words are possible decryptions."
+
+<Letters>:
+    btns: buttons
+
+    GridLayout:
+        id: buttons
+        rows: 1
+        padding: 2
+        orientation: 'lr-tb'        
+        
+        size_hint_y: None
+
+        height: self.minimum_height
+
 
 <Possibility@Label>:
     font_size: 20

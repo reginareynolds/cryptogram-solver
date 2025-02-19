@@ -296,7 +296,7 @@ class Cryptogram():
                 Clock.schedule_once(partial(cryptogram_page.update_text, self.decrypted))
             # Update buttons in decryption cypher
             Clock.schedule_once(partial(cryptogram_page.update_decryption_possibilities, encrypted_chars.index(item), self.final_cypher.cypher[item]))
-            time.sleep(1)
+            time.sleep(0.25)
 
     # Update decryption with each cypher update
     def update_dec_text(self, enc_char, solution):
@@ -554,8 +554,6 @@ class Cryptogram():
         if len(word_groups):
             cryptogram_page = app.frame.carousel.slides[1]
 
-            Clock.schedule_once(partial(cryptogram_page.add_uncertain_letters, word_groups, total_possibilities))
-            time.sleep(10)
             for group in word_groups:
                 to_print = ''
                 for word in group:
@@ -566,59 +564,64 @@ class Cryptogram():
             for decryption in total_possibilities:
                 print(''.join(decryption))
 
-            # Give user option to confirm based on word frequency
-            word_count = 0
-            compare = []
-            self.word_groups(wrong, compare, line_groups)
+
+            Clock.schedule_once(partial(cryptogram_page.add_uncertain_letters, word_groups, total_possibilities))
+            time.sleep(1)
+            # time.sleep(10)
+            # # Give user option to confirm based on word frequency
+            # word_count = 0
+            # compare = []
+            # self.word_groups(wrong, compare, line_groups)
             
-            for group in word_groups:
-                # User selection has removed possibilities from other uncertain words
-                if compare[word_count] != group:
-                    group = compare[word_count]  # Update uncertain word possibilities
+            # for group in word_groups:
+            #     # User selection has removed possibilities from other uncertain words
+            #     if compare[word_count] != group:
+            #         group = compare[word_count]  # Update uncertain word possibilities
 
-                # Word is still uncertain
-                if len(group) > 1:
-                    for word in group:
-                        print("The word frequency of ", word, " in the English language is ", word_frequency(word, 'en'))
+            #     # Word is still uncertain
+            #     if len(group) > 1:
+            #         for word in group:
+            #             print("The word frequency of ", word, " in the English language is ", word_frequency(word, 'en'))
                 
-                    # Prompt for user input
-                    prompt = True
-                    while prompt:
-                        keep = input("Which word would you like to keep?")
-                        keep = keep.strip().upper()
+            #         # Prompt for user input
+            #         prompt = True
+            #         while prompt:
+            #             keep = input("Which word would you like to keep?")
+            #             keep = keep.strip().upper()
 
-                        # User selected an invalid option
-                        if keep not in group:
-                            keep = input("That is not a valid selection. Please choose again.")
-                        # User made valid selection
-                        else:
-                            decryption_count = 0
-                            groups_remove = []
-                            decryptions_remove = []
-                            for line in line_groups:
-                                if line[word_count] != keep:
-                                    groups_remove.append(line)
-                                    decryptions_remove.append(total_possibilities[decryption_count])
-                                decryption_count = decryption_count + 1
+            #             # User selected an invalid option
+            #             if keep not in group:
+            #                 keep = input("That is not a valid selection. Please choose again.")
+            #             # User made valid selection
+            #             else:
+            #                 decryption_count = 0
+            #                 groups_remove = []
+            #                 decryptions_remove = []
+            #                 for line in line_groups:
+            #                     if line[word_count] != keep:
+            #                         groups_remove.append(line)
+            #                         decryptions_remove.append(total_possibilities[decryption_count])
+            #                     decryption_count = decryption_count + 1
                 
-                            for wrong in groups_remove:
-                                line_groups.remove(wrong)
+            #                 for wrong in groups_remove:
+            #                     line_groups.remove(wrong)
 
-                            for wrong in decryptions_remove:
-                                total_possibilities.remove(wrong)
+            #                 for wrong in decryptions_remove:
+            #                     total_possibilities.remove(wrong)
 
-                            compare = []
-                            self.word_groups(wrong, compare, line_groups)
+            #                 compare = []
+            #                 self.word_groups(wrong, compare, line_groups)
 
-                            prompt = False
+            #                 prompt = False
 
-                word_count = word_count + 1
+            #     word_count = word_count + 1
 
-            print("Based on your selections, the final decryption is:")
-            print(''.join(total_possibilities[0]))
+            # print("Based on your selections, the final decryption is:")
+            # print(''.join(total_possibilities[0]))
             
-            # Update final cypher based on user selections
+            # # Update final cypher based on user selections
 
+            # # TODO: Remove fully decrypted words that don't show up in the dictionary
             # self.rerun_check()  # TODO: Run this after a user makes a selection, otherwise it keeps rerunning self.decrypt, which reruns self.user_choice endlessly
 
     def word_groups(self, wrong, words, lines):
@@ -717,6 +720,8 @@ class CryptogramScreen(Widget):
     default_encrypted = ObjectProperty(None)
     default_decrypted = ObjectProperty(None)
 
+    def add_group_btns(self, groups, *kwargs):
+        pass
     def add_uncertain_letters(self, groups, possibilities, *kwargs):
         print("caller name: ", inspect.stack()[1][3])
         start = time.time()
@@ -726,6 +731,16 @@ class CryptogramScreen(Widget):
             # TODO: Give row an ID of the unsolved encrypted letter
             for word in group:
                 btn = Button(text=word)
+
+
+
+                btn.size_hint_y= None
+                # btn.text_size= [btn.width, None]
+                # btn.height= btn.texture_size[1]
+                # btn.center_x = btn.parent.width/2
+
+                # btn.text_size = btn.size
+                # btn.height: btn.texture_size[1]
                 btn.name = btn.text
                 btn.bind(on_press=self.popup.callback)
                 # TODO: Bind button clicks to user selection (using name property?)
@@ -804,8 +819,8 @@ class CryptogramScreen(Widget):
 
                 # Add buttons to decryption cypher
                 Clock.schedule_once(partial(self.add_cypher_row, enc_btn, dec_btn))
-                time.sleep(0.5)
-
+                # time.sleep(0.5)
+                time.sleep(0.1)
             # Increment count
             inc = inc + 1
 
